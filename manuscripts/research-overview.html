@@ -1,0 +1,552 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+<title>research-overview</title><link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color: #ffffff; --text-color: #333333; --select-text-bg-color: #B5D6FC; --select-text-font-color: auto; --monospace: "Lucida Console",Consolas,"Courier",monospace; }
+html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0px; padding: 0px; height: auto; bottom: 0px; top: 0px; left: 0px; right: 0px; font-size: 1rem; line-height: 1.42857143; overflow-x: hidden; background-image: inherit; background-size: inherit; background-attachment: inherit; background-origin: inherit; background-clip: inherit; background-color: inherit; tab-size: 4; background-position: inherit inherit; background-repeat: inherit inherit; }
+iframe { margin: auto; }
+a.url { word-break: break-all; }
+a:active, a:hover { outline: 0px; }
+.in-text-selection, ::selection { text-shadow: none; background: var(--select-text-bg-color); color: var(--select-text-font-color); }
+#write { margin: 0px auto; height: auto; width: inherit; word-break: normal; word-wrap: break-word; position: relative; white-space: normal; overflow-x: visible; padding-top: 40px; }
+#write.first-line-indent p { text-indent: 2em; }
+#write.first-line-indent li p, #write.first-line-indent p * { text-indent: 0px; }
+#write.first-line-indent li { margin-left: 2em; }
+.for-image #write { padding-left: 8px; padding-right: 8px; }
+body.typora-export { padding-left: 30px; padding-right: 30px; }
+.typora-export .footnote-line, .typora-export li, .typora-export p { white-space: pre-wrap; }
+.typora-export .task-list-item input { pointer-events: none; }
+@media screen and (max-width: 500px) { 
+  body.typora-export { padding-left: 0px; padding-right: 0px; }
+  #write { padding-left: 20px; padding-right: 20px; }
+  .CodeMirror-sizer { margin-left: 0px !important; }
+  .CodeMirror-gutters { display: none !important; }
+}
+#write li > figure:last-child { margin-bottom: 0.5rem; }
+#write ol, #write ul { position: relative; }
+img { max-width: 100%; vertical-align: middle; image-orientation: from-image; }
+button, input, select, textarea { color: inherit; font-family: inherit; font-size: inherit; font-style: inherit; font-variant-caps: inherit; font-weight: inherit; font-stretch: inherit; line-height: inherit; }
+input[type="checkbox"], input[type="radio"] { line-height: normal; padding: 0px; }
+*, ::after, ::before { box-sizing: border-box; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p, #write pre { width: inherit; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p { position: relative; }
+p { line-height: inherit; }
+h1, h2, h3, h4, h5, h6 { break-after: avoid-page; break-inside: avoid; orphans: 4; }
+p { orphans: 4; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+h5 { font-size: 1.2rem; }
+h6 { font-size: 1rem; }
+.md-math-block, .md-rawblock, h1, h2, h3, h4, h5, h6, p { margin-top: 1rem; margin-bottom: 1rem; }
+.hidden { display: none; }
+.md-blockmeta { color: rgb(204, 204, 204); font-weight: 700; font-style: italic; }
+a { cursor: pointer; }
+sup.md-footnote { padding: 2px 4px; background-color: rgba(238, 238, 238, 0.7); color: rgb(85, 85, 85); border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; cursor: pointer; }
+sup.md-footnote a, sup.md-footnote a:hover { color: inherit; text-transform: inherit; text-decoration: inherit; }
+#write input[type="checkbox"] { cursor: pointer; width: inherit; height: inherit; }
+figure { overflow-x: auto; margin: 1.2em 0px; max-width: calc(100% + 16px); padding: 0px; }
+figure > table { margin: 0px; }
+tr { break-inside: avoid; break-after: auto; }
+thead { display: table-header-group; }
+table { border-collapse: collapse; border-spacing: 0px; width: 100%; overflow: auto; break-inside: auto; text-align: left; }
+table.md-table td { min-width: 32px; }
+.CodeMirror-gutters { border-right-width: 0px; background-color: inherit; }
+.CodeMirror-linenumber { }
+.CodeMirror { text-align: left; }
+.CodeMirror-placeholder { opacity: 0.3; }
+.CodeMirror pre { padding: 0px 4px; }
+.CodeMirror-lines { padding: 0px; }
+div.hr:focus { cursor: none; }
+#write pre { white-space: pre-wrap; }
+#write.fences-no-line-wrapping pre { white-space: pre; }
+#write pre.ty-contain-cm { white-space: normal; }
+.CodeMirror-gutters { margin-right: 4px; }
+.md-fences { font-size: 0.9rem; display: block; break-inside: avoid; text-align: left; overflow: visible; white-space: pre; background-image: inherit; background-size: inherit; background-attachment: inherit; background-origin: inherit; background-clip: inherit; background-color: inherit; position: relative !important; background-position: inherit inherit; background-repeat: inherit inherit; }
+.md-diagram-panel { width: 100%; margin-top: 10px; text-align: center; padding-top: 0px; padding-bottom: 8px; overflow-x: auto; }
+#write .md-fences.mock-cm { white-space: pre-wrap; }
+.md-fences.md-fences-with-lineno { padding-left: 0px; }
+#write.fences-no-line-wrapping .md-fences.mock-cm { white-space: pre; overflow-x: auto; }
+.md-fences.mock-cm.md-fences-with-lineno { padding-left: 8px; }
+.CodeMirror-line, twitterwidget { break-inside: avoid; }
+.footnotes { opacity: 0.8; font-size: 0.9rem; margin-top: 1em; margin-bottom: 1em; }
+.footnotes + .footnotes { margin-top: 0px; }
+.md-reset { margin: 0px; padding: 0px; border: 0px; outline: 0px; vertical-align: top; text-decoration: none; text-shadow: none; float: none; position: static; width: auto; height: auto; white-space: nowrap; cursor: inherit; line-height: normal; font-weight: 400; text-align: left; box-sizing: content-box; direction: ltr; background-position: 0px 0px; background-repeat: initial initial; }
+li div { padding-top: 0px; }
+blockquote { margin: 1rem 0px; }
+li .mathjax-block, li p { margin: 0.5rem 0px; }
+li { margin: 0px; position: relative; }
+blockquote > :last-child { margin-bottom: 0px; }
+blockquote > :first-child, li > :first-child { margin-top: 0px; }
+.footnotes-area { color: rgb(136, 136, 136); margin-top: 0.714rem; padding-bottom: 0.143rem; white-space: normal; }
+#write .footnote-line { white-space: pre-wrap; }
+@media print { 
+  body, html { border: 1px solid transparent; height: 99%; break-after: avoid; break-before: avoid; font-variant-ligatures: no-common-ligatures; }
+  #write { margin-top: 0px; padding-top: 0px; border-color: transparent !important; }
+  .typora-export * { -webkit-print-color-adjust: exact; }
+  html.blink-to-pdf { font-size: 13px; }
+  .typora-export #write { break-after: avoid; }
+  .typora-export #write::after { height: 0px; }
+  .is-mac table { break-inside: avoid; }
+}
+.footnote-line { margin-top: 0.714em; font-size: 0.7em; }
+a img, img a { cursor: pointer; }
+pre.md-meta-block { font-size: 0.8rem; min-height: 0.8rem; white-space: pre-wrap; background-color: rgb(204, 204, 204); display: block; overflow-x: hidden; background-position: initial initial; background-repeat: initial initial; }
+p > .md-image:only-child:not(.md-img-error) img, p > img:only-child { display: block; margin: auto; }
+#write.first-line-indent p > .md-image:only-child:not(.md-img-error) img { left: -2em; position: relative; }
+p > .md-image:only-child { display: inline-block; width: 100%; }
+#write .MathJax_Display { margin: 0.8em 0px 0px; }
+.md-math-block { width: 100%; }
+.md-math-block:not(:empty)::after { display: none; }
+[contenteditable="true"]:active, [contenteditable="true"]:focus, [contenteditable="false"]:active, [contenteditable="false"]:focus { outline: 0px; box-shadow: none; }
+.md-task-list-item { position: relative; list-style-type: none; }
+.task-list-item.md-task-list-item { padding-left: 0px; }
+.md-task-list-item > input { position: absolute; top: 0px; left: 0px; margin-left: -1.2em; margin-top: calc(1em - 10px); border: none; }
+.math { font-size: 1rem; }
+.md-toc { min-height: 3.58rem; position: relative; font-size: 0.9rem; border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; }
+.md-toc-content { position: relative; margin-left: 0px; }
+.md-toc-content::after, .md-toc::after { display: none; }
+.md-toc-item { display: block; color: rgb(65, 131, 196); }
+.md-toc-item a { text-decoration: none; }
+.md-toc-inner:hover { text-decoration: underline; }
+.md-toc-inner { display: inline-block; cursor: pointer; }
+.md-toc-h1 .md-toc-inner { margin-left: 0px; font-weight: 700; }
+.md-toc-h2 .md-toc-inner { margin-left: 2em; }
+.md-toc-h3 .md-toc-inner { margin-left: 4em; }
+.md-toc-h4 .md-toc-inner { margin-left: 6em; }
+.md-toc-h5 .md-toc-inner { margin-left: 8em; }
+.md-toc-h6 .md-toc-inner { margin-left: 10em; }
+@media screen and (max-width: 48em) { 
+  .md-toc-h3 .md-toc-inner { margin-left: 3.5em; }
+  .md-toc-h4 .md-toc-inner { margin-left: 5em; }
+  .md-toc-h5 .md-toc-inner { margin-left: 6.5em; }
+  .md-toc-h6 .md-toc-inner { margin-left: 8em; }
+}
+a.md-toc-inner { font-size: inherit; font-style: inherit; font-weight: inherit; line-height: inherit; }
+.footnote-line a:not(.reversefootnote) { color: inherit; }
+.md-attr { display: none; }
+.md-fn-count::after { content: "."; }
+code, pre, samp, tt { font-family: var(--monospace); }
+kbd { margin: 0px 0.1em; padding: 0.1em 0.6em; font-size: 0.8em; color: rgb(36, 39, 41); background-color: rgb(255, 255, 255); border: 1px solid rgb(173, 179, 185); border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-right-radius: 3px; border-bottom-left-radius: 3px; box-shadow: rgba(12, 13, 14, 0.2) 0px 1px 0px, rgb(255, 255, 255) 0px 0px 0px 2px inset; white-space: nowrap; vertical-align: middle; background-position: initial initial; background-repeat: initial initial; }
+.md-comment { color: rgb(162, 127, 3); opacity: 0.8; font-family: var(--monospace); }
+code { text-align: left; }
+a.md-print-anchor { white-space: pre !important; border: none !important; display: inline-block !important; position: absolute !important; width: 1px !important; right: 0px !important; outline: 0px !important; text-shadow: initial !important; background-position: 0px 0px !important; background-repeat: initial initial !important; }
+.md-inline-math .MathJax_SVG .noError { display: none !important; }
+.html-for-mac .inline-math-svg .MathJax_SVG { vertical-align: 0.2px; }
+.md-math-block .MathJax_SVG_Display { text-align: center; margin: 0px; position: relative; text-indent: 0px; max-width: none; max-height: none; min-height: 0px; min-width: 100%; width: auto; overflow-y: hidden; display: block !important; }
+.MathJax_SVG_Display, .md-inline-math .MathJax_SVG_Display { width: auto; margin: inherit; display: inline-block !important; }
+.MathJax_SVG .MJX-monospace { font-family: var(--monospace); }
+.MathJax_SVG .MJX-sans-serif { font-family: sans-serif; }
+.MathJax_SVG { display: inline; font-style: normal; font-weight: 400; line-height: normal; zoom: 90%; text-indent: 0px; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0px; min-height: 0px; border: 0px; padding: 0px; margin: 0px; }
+.MathJax_SVG * { transition: none; }
+.MathJax_SVG_Display svg { vertical-align: middle !important; margin-bottom: 0px !important; margin-top: 0px !important; }
+.os-windows.monocolor-emoji .md-emoji { font-family: "Segoe UI Symbol", sans-serif; }
+.md-diagram-panel > svg { max-width: 100%; }
+[lang="flow"] svg, [lang="mermaid"] svg { max-width: 100%; height: auto; }
+[lang="mermaid"] .node text { font-size: 1rem; }
+table tr th { border-bottom-width: 0px; }
+video { max-width: 100%; display: block; margin: 0px auto; }
+iframe { max-width: 100%; width: 100%; border: none; }
+.highlight td, .highlight tr { border: 0px; }
+svg[id^="mermaidChart"] { line-height: 1em; }
+mark { background-color: rgb(255, 255, 0); color: rgb(0, 0, 0); background-position: initial initial; background-repeat: initial initial; }
+.md-html-inline .md-plain, .md-html-inline strong, mark .md-inline-math, mark strong { color: inherit; }
+mark .md-meta { color: rgb(0, 0, 0); opacity: 0.3 !important; }
+@media print { 
+  .typora-export h1, .typora-export h2, .typora-export h3, .typora-export h4, .typora-export h5, .typora-export h6 { break-inside: avoid; }
+}
+
+
+:root {
+    --side-bar-bg-color: #fafafa;
+    --control-text-color: #777;
+}
+
+@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+
+/* open-sans-regular - latin-ext_latin */
+  /* open-sans-italic - latin-ext_latin */
+    /* open-sans-700 - latin-ext_latin */
+    /* open-sans-700italic - latin-ext_latin */
+  html {
+    font-size: 16px;
+}
+
+body {
+    font-family: "Open Sans","Clear Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: rgb(51, 51, 51);
+    line-height: 1.6;
+}
+
+#write {
+    max-width: 860px;
+  	margin: 0 auto;
+  	padding: 30px;
+    padding-bottom: 100px;
+}
+
+@media only screen and (min-width: 1400px) {
+	#write {
+		max-width: 1024px;
+	}
+}
+
+@media only screen and (min-width: 1800px) {
+	#write {
+		max-width: 1200px;
+	}
+}
+
+#write > ul:first-child,
+#write > ol:first-child{
+    margin-top: 30px;
+}
+
+a {
+    color: #4183C4;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    position: relative;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    line-height: 1.4;
+    cursor: text;
+}
+h1:hover a.anchor,
+h2:hover a.anchor,
+h3:hover a.anchor,
+h4:hover a.anchor,
+h5:hover a.anchor,
+h6:hover a.anchor {
+    text-decoration: none;
+}
+h1 tt,
+h1 code {
+    font-size: inherit;
+}
+h2 tt,
+h2 code {
+    font-size: inherit;
+}
+h3 tt,
+h3 code {
+    font-size: inherit;
+}
+h4 tt,
+h4 code {
+    font-size: inherit;
+}
+h5 tt,
+h5 code {
+    font-size: inherit;
+}
+h6 tt,
+h6 code {
+    font-size: inherit;
+}
+h1 {
+    font-size: 2.25em;
+    line-height: 1.2;
+    border-bottom: 1px solid #eee;
+}
+h2 {
+    font-size: 1.75em;
+    line-height: 1.225;
+    border-bottom: 1px solid #eee;
+}
+
+/*@media print {
+    .typora-export h1,
+    .typora-export h2 {
+        border-bottom: none;
+        padding-bottom: initial;
+    }
+
+    .typora-export h1::after,
+    .typora-export h2::after {
+        content: "";
+        display: block;
+        height: 100px;
+        margin-top: -96px;
+        border-top: 1px solid #eee;
+    }
+}*/
+
+h3 {
+    font-size: 1.5em;
+    line-height: 1.43;
+}
+h4 {
+    font-size: 1.25em;
+}
+h5 {
+    font-size: 1em;
+}
+h6 {
+   font-size: 1em;
+    color: #777;
+}
+p,
+blockquote,
+ul,
+ol,
+dl,
+table{
+    margin: 0.8em 0;
+}
+li>ol,
+li>ul {
+    margin: 0 0;
+}
+hr {
+    height: 2px;
+    padding: 0;
+    margin: 16px 0;
+    background-color: #e7e7e7;
+    border: 0 none;
+    overflow: hidden;
+    box-sizing: content-box;
+}
+
+li p.first {
+    display: inline-block;
+}
+ul,
+ol {
+    padding-left: 30px;
+}
+ul:first-child,
+ol:first-child {
+    margin-top: 0;
+}
+ul:last-child,
+ol:last-child {
+    margin-bottom: 0;
+}
+blockquote {
+    border-left: 4px solid #dfe2e5;
+    padding: 0 15px;
+    color: #777777;
+}
+blockquote blockquote {
+    padding-right: 0;
+}
+table {
+    padding: 0;
+    word-break: initial;
+}
+table tr {
+    border-top: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 0;
+}
+table tr:nth-child(2n),
+thead {
+    background-color: #f8f8f8;
+}
+table tr th {
+    font-weight: bold;
+    border: 1px solid #dfe2e5;
+    border-bottom: 0;
+    margin: 0;
+    padding: 6px 13px;
+}
+table tr td {
+    border: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 6px 13px;
+}
+table tr th:first-child,
+table tr td:first-child {
+    margin-top: 0;
+}
+table tr th:last-child,
+table tr td:last-child {
+    margin-bottom: 0;
+}
+
+.CodeMirror-lines {
+    padding-left: 4px;
+}
+
+.code-tooltip {
+    box-shadow: 0 1px 1px 0 rgba(0,28,36,.3);
+    border-top: 1px solid #eef2f2;
+}
+
+.md-fences,
+code,
+tt {
+    border: 1px solid #e7eaed;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+    padding: 0;
+    padding: 2px 4px 0px 4px;
+    font-size: 0.9em;
+}
+
+code {
+    background-color: #f3f4f4;
+    padding: 0 2px 0 2px;
+}
+
+.md-fences {
+    margin-bottom: 15px;
+    margin-top: 15px;
+    padding-top: 8px;
+    padding-bottom: 6px;
+}
+
+
+.md-task-list-item > input {
+  margin-left: -1.3em;
+}
+
+@media print {
+    html {
+        font-size: 13px;
+    }
+    table,
+    pre {
+        page-break-inside: avoid;
+    }
+    pre {
+        word-wrap: break-word;
+    }
+}
+
+.md-fences {
+	background-color: #f8f8f8;
+}
+#write pre.md-meta-block {
+	padding: 1rem;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f7f7f7;
+    border: 0;
+    border-radius: 3px;
+    color: #777777;
+    margin-top: 0 !important;
+}
+
+.mathjax-block>.code-tooltip {
+	bottom: .375rem;
+}
+
+.md-mathjax-midline {
+    background: #fafafa;
+}
+
+#write>h3.md-focus:before{
+	left: -1.5625rem;
+	top: .375rem;
+}
+#write>h4.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h5.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h6.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+.md-image>.md-meta {
+    /*border: 1px solid #ddd;*/
+    border-radius: 3px;
+    padding: 2px 0px 0px 4px;
+    font-size: 0.9em;
+    color: inherit;
+}
+
+.md-tag {
+    color: #a7a7a7;
+    opacity: 1;
+}
+
+.md-toc { 
+    margin-top:20px;
+    padding-bottom:20px;
+}
+
+.sidebar-tabs {
+    border-bottom: none;
+}
+
+#typora-quick-open {
+    border: 1px solid #ddd;
+    background-color: #f8f8f8;
+}
+
+#typora-quick-open-item {
+    background-color: #FAFAFA;
+    border-color: #FEFEFE #e5e5e5 #e5e5e5 #eee;
+    border-style: solid;
+    border-width: 1px;
+}
+
+/** focus mode */
+.on-focus-mode blockquote {
+    border-left-color: rgba(85, 85, 85, 0.12);
+}
+
+header, .context-menu, .megamenu-content, footer{
+    font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+.file-node-content:hover .file-node-icon,
+.file-node-content:hover .file-node-open-state{
+    visibility: visible;
+}
+
+.mac-seamless-mode #typora-sidebar {
+    background-color: #fafafa;
+    background-color: var(--side-bar-bg-color);
+}
+
+.md-lang {
+    color: #b4654d;
+}
+
+.html-for-mac .context-menu {
+    --item-hover-bg-color: #E6F0FE;
+}
+
+#md-notification .btn {
+    border: 0;
+}
+
+.dropdown-menu .divider {
+    border-color: #e5e5e5;
+}
+
+.ty-preferences .window-content {
+    background-color: #fafafa;
+}
+
+.ty-preferences .nav-group-item.active {
+    color: white;
+    background: #999;
+}
+
+
+</style>
+</head>
+<body class='typora-export'>
+<div id='write'  class=''><h1><a name="research-overview" class="md-header-anchor"></a><span>Research Overview</span></h1><div class='md-toc' mdtype='toc'><p class="md-toc-content" role="list"><span role="listitem" class="md-toc-item md-toc-h1" data-ref="n2"><a class="md-toc-inner" href="#research-overview">Research Overview</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n179"><a class="md-toc-inner" href="#找到自己的问题">找到自己的问题</a></span><span role="listitem" class="md-toc-item md-toc-h3" data-ref="n3"><a class="md-toc-inner" href="#如何看paper">如何看paper</a></span><span role="listitem" class="md-toc-item md-toc-h4" data-ref="n15"><a class="md-toc-inner" href="#针对上述问题有几点建议">针对上述问题，有几点建议</a></span><span role="listitem" class="md-toc-item md-toc-h4" data-ref="n35"><a class="md-toc-inner" href="#总之">总之</a></span><span role="listitem" class="md-toc-item md-toc-h3" data-ref="n41"><a class="md-toc-inner" href="#学习和研究的关系">学习和研究的关系</a></span><span role="listitem" class="md-toc-item md-toc-h3" data-ref="n44"><a class="md-toc-inner" href="#问题从哪里来">问题从哪里来</a></span><span role="listitem" class="md-toc-item md-toc-h4" data-ref="n61"><a class="md-toc-inner" href="#有几点建议">有几点建议 </a></span><span role="listitem" class="md-toc-item md-toc-h3" data-ref="n70"><a class="md-toc-inner" href="#什么样的问题是一个好问题">什么样的问题是一个好问题</a></span><span role="listitem" class="md-toc-item md-toc-h3" data-ref="n81"><a class="md-toc-inner" href="#如何问问题">如何问问题</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n91"><a class="md-toc-inner" href="#解决这个问题">解决这个问题</a></span><span role="listitem" class="md-toc-item md-toc-h3" data-ref="n101"><a class="md-toc-inner" href="#如果脑中只有一堆很小的想法">如果脑中只有一堆很小的想法</a></span><span role="listitem" class="md-toc-item md-toc-h3" data-ref="n112"><a class="md-toc-inner" href="#在解决问题时遇到了困难怎么办">在解决问题时遇到了困难怎么办</a></span><span role="listitem" class="md-toc-item md-toc-h4" data-ref="n113"><a class="md-toc-inner" href="#find-bugs-find-mistakes">Find bugs, find mistakes</a></span><span role="listitem" class="md-toc-item md-toc-h4" data-ref="n130"><a class="md-toc-inner" href="#working-reading-writing">working, reading, writing</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n138"><a class="md-toc-inner" href="#什么是好的研究">什么是好的研究</a></span><span role="listitem" class="md-toc-item md-toc-h3" data-ref="n140"><a class="md-toc-inner" href="#坚持自我">坚持自我</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n142"><a class="md-toc-inner" href="#理想的-schedule">理想的 schedule</a></span><span role="listitem" class="md-toc-item md-toc-h4" data-ref="n143"><a class="md-toc-inner" href="#第一年">第一年</a></span><span role="listitem" class="md-toc-item md-toc-h4" data-ref="n152"><a class="md-toc-inner" href="#第二年">第二年</a></span><span role="listitem" class="md-toc-item md-toc-h4" data-ref="n162"><a class="md-toc-inner" href="#第三四年">第三、四年</a></span><span role="listitem" class="md-toc-item md-toc-h3" data-ref="n168"><a class="md-toc-inner" href="#做加法的局限">做加法的局限</a></span></p></div><h2><a name="找到自己的问题" class="md-header-anchor"></a><span>找到自己的问题</span></h2><h3><a name="如何看paper" class="md-header-anchor"></a><span>如何看paper</span></h3><p><span>在博士第一年时需要看很多 paper，掌握 state-of-the-art，从而了解整个领域的发展。看别人还有什么没有做或者做得不是很好。但需要在这过程中需要注意： </span></p><ul><li><span>这样很容易沉迷于 &quot;收集&quot; 最新的技术；</span></li><li><span>觉得别人把能做的都做完啦，感到自己没有什么可以做的；</span></li><li><span>认为可以 follow 别人论文中的 &quot;future work&quot;，把它们作为指路明灯；</span></li><li><span>一直看 paper，却从不思考，不动手；</span></li><li><span>沉迷于一些细节上的改进，给别人的工作做加法。</span></li></ul><h4><a name="针对上述问题有几点建议" class="md-header-anchor"></a><span>针对上述问题，有几点建议</span></h4><ul><li><span>带着问题去看 paper：在看所有 paper 之前，要思考如果自己来做会怎么做，再对照别人的&quot;解法&quot;，有是什么异同；</span></li><li><span>时刻记得，要用逻辑去验证别人的工作，例如用思想试验、反例、极端简单情况等，不要轻信别人的 claim 或者结果（并不是乱怀疑）；</span></li><li><span>大致了解别人的工作后，可以试一试、动动手；</span></li><li><span>要多想一下别人论文中隐含的假设（为什么要这样简化，为什么不那么做？）要敢于怀疑这个问题或解法的合理性；</span></li><li><span>要看一些经典的paper，知道潮流是怎么来的；</span></li><li><span>Read these papers, understand the old ideas, understand the original problems, these are common ways these days;</span></li><li><span>If you can find another way;</span></li><li><span>If you can resolve some main limitation, or add some weak constraints but get stronger results.</span></li><li><span>设计和采用最合适的技术而不是最新、最高深的技术。</span></li></ul><h4><a name="总之" class="md-header-anchor"></a><span>总之</span></h4><ul><li><span>从问题本源去看去想，才能摆脱跟随潮流、觉得别人把能做的都做完了的困境，摆脱只有一些小 idea 的局限；</span></li><li><span>做一些系统化的的工作，而不是零零碎碎的小工作。 </span></li></ul><h3><a name="学习和研究的关系" class="md-header-anchor"></a><span>学习和研究的关系</span></h3><p><span>学习是 consume knowledge，而研究是 produce knowledge，如果不带着问题，不带着自己的想法，去泛泛地看一本书、学一门公开课、一大堆 paper，很容易给自己的一种虚假的充实感，但事实上很难促进自己的研究进展。因此，要带着自己的问题去寻找已有的工作，去寻找相应的工具，带着自己已有的大概的想法，去找别人有没有类似的思路。</span></p><h3><a name="问题从哪里来" class="md-header-anchor"></a><span>问题从哪里来</span></h3><ul><li><span>从实际中提炼出一个新问题（问题创新）；</span></li><li><span>从一个新的角度去看一个老问题（问题创新）；</span></li><li><span>用全新的方法去解决一个问题（方法创新）；</span></li><li><span>去掉所有限制，去掉所有约束，考虑最坏的情况，该如何解决（问题创新+方法创新）。</span>
+<span>看实际生活中有什么可以解决的，尝试去解决它？因为有用的东西才能自圆其说，才能越走越宽。不过要小心：</span></li><li><span>觉得自己做的东西和实际相差太远，没有任何用处；</span></li><li><span>觉得自己做的东西太实际了，应用面非常狭窄；</span></li><li><span>沉迷于把东西“做出来”，止步于工程的实现，觉得没啥可做了；</span></li><li><span>觉得实际问题太苦难了，做不动。</span></li></ul><h4><a name="有几点建议" class="md-header-anchor"></a><span>有几点建议 </span></h4><ul><li><span>实际和 paper 之间的 gap 必然存在，但往往不是你做的方向和实际相差太远，而是你的工作或者已有工作给出的解决方案太理想化了；</span></li><li><span>如何简化问题是一门艺术：需要考虑非常多的因素，如果简化不够，那么很难抓住主要矛盾，工作没有一般性；过于简化问题，那么得到的结果一般，没有办法实际应用；</span></li><li><span>适当的简化可以提取主要矛盾，得到尽可能一般的方法，缩小实际和 paper 之间的 gap.</span></li></ul><h3><a name="什么样的问题是一个好问题" class="md-header-anchor"></a><span>什么样的问题是一个好问题</span></h3><ul><li><span>能够和其他已有的 topic 有 rich interaction;</span></li><li><span>能够带来让人耳目一新的 change;</span></li><li><span>对应的 change 可以有很好的后续性：the important thing is finding wet snow and reallly long hill;</span></li><li><span>对应的 change 能够真正解决一个重要的应用；</span></li><li><span>能够用一整套理论去解决一个新问题 。</span></li></ul><h3><a name="如何问问题" class="md-header-anchor"></a><span>如何问问题</span></h3><ul><li><span>Ask simple questions first, you can start from there;</span></li><li><span>Ask &quot;stupid&quot; questions, may not be stupid;</span></li><li><span>Don&#39;t be afraid of asking crazy questions; solve big problems;</span></li><li><span>Suggestion: Keep a list of simple and crazy questions, and track them, think whenever you have time.</span></li></ul><h2><a name="解决这个问题" class="md-header-anchor"></a><span>解决这个问题</span></h2><ul><li><span>solve simple questions, then find more questions;</span></li><li><span>Rethink your problem many times;</span></li><li><span>Solve harder problems;</span></li><li><span>Rethink your problem many times.</span></li></ul><h3><a name="如果脑中只有一堆很小的想法" class="md-header-anchor"></a><span>如果脑中只有一堆很小的想法</span></h3><ul><li><span>那么我们可以先做一个简单的系统；</span></li><li><span>并且在过程中继续发现问题；</span></li><li><span>很少有人可以一下子有一个非常大的想法，大部分情况下都是一些空想；</span></li><li><span>认识需要不断加深。</span>
+<span>解决问题中是数学越高深越好吗，是机器学习用的越多越好吗？并不是。</span>
+<span>要舍得放弃一些小的想法，每个人的时间是有限的，可以让第一年的同学去做这些小的想法。</span>
+<span>另外，在写论文时，刻意去讲故事是不容易成功的，虽然有时候我们不得不去讲一个故事去包装，但是包装不是目的。</span></li></ul><h3><a name="在解决问题时遇到了困难怎么办" class="md-header-anchor"></a><span>在解决问题时遇到了困难怎么办</span></h3><h4><a name="find-bugs-find-mistakes" class="md-header-anchor"></a><span>Find bugs, find mistakes</span></h4><ul><li><span>test each component first</span></li><li><span>try simple case first</span></li><li><span>try extreme case first</span></li><li><span>try case with analytical or easy to judge results first</span></li><li><span>反复检查代码是最低效的解决方法</span></li><li><span>多写测试 case，使用 unit test</span></li><li><span>多写 visualization， 在调试和 paper 里都可以用</span></li><li><span>debug 的过程需要 evidence，而不是呆着看代码</span></li></ul><h4><a name="working-reading-writing" class="md-header-anchor"></a><span>working, reading, writing</span></h4><ul><li><span>每天一部分的时间用来 working on the project，一部分时间用来 reading，一部分时间用 writing;</span></li><li><span>writing 可以迫使自己让想法更加清晰化、具体化，也容易发现过程中的错误和疏漏；</span></li><li><span>reading 可以不时给自己一点新的启发。</span></li></ul><h2><a name="什么是好的研究" class="md-header-anchor"></a><span>什么是好的研究</span></h2><h3><a name="坚持自我" class="md-header-anchor"></a><span>坚持自我</span></h3><p><span>机器学习目前的确有更多的 citation，也很热闹，但是还是要有自己的核心，而不是随大流的工作，要用工作质量来衡量。在一个热闹的领域里，没有自己的核心 idea 和特点是没有办法去成体系地跟上的。要有自己的坚持，坚持到底，做漂亮做完整的工作。paper 写作时，要主要示意图是不是容易理解，看 paper 时也要看一看哪些写作是比较好的。</span></p><h2><a name="理想的-schedule" class="md-header-anchor"></a><span>理想的 schedule</span></h2><h4><a name="第一年" class="md-header-anchor"></a><span>第一年</span></h4><ul><li><span>一个具体的小想法；</span></li><li><span>完成基本的软件、硬件平台的搭建；</span></li><li><span>对整个领域有了解；</span></li><li><span>开始思考自己的 &quot;大问题&quot;。</span></li></ul><h4><a name="第二年" class="md-header-anchor"></a><span>第二年</span></h4><ul><li><span>在 &quot;大问题&quot; 上有初步的想法，提出一两个初步的步骤，去开始一定的探索；</span></li><li><span>一些简单的情况怎么处理；</span></li><li><span>加一些合适的简化；</span></li><li><span>希望从这个时候开始老师从学生那里学校一点东西（新想法、新观点、新事实）。</span></li></ul><h4><a name="第三四年" class="md-header-anchor"></a><span>第三、四年</span></h4><ul><li><span>在解决这个大问题上有比较大的进展；</span></li><li><span>有自己独立的想法和 idea.</span></li></ul><h3><a name="做加法的局限" class="md-header-anchor"></a><span>做加法的局限</span></h3><ul><li><span>完美的子系统的串联 ≠ 高质量的整体系统；</span></li><li><span>子问题也许在解决一个比原问题更难的问题，通过一个更难问题的低质量的解来得到目标问题的解， 或者直接解决目标问题；</span></li><li><span>子问题的难点可能在于没有考虑其他部分的交互。</span></li></ul></div>
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+<title>interview-preparation</title><link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color: #ffffff; --text-color: #333333; --select-text-bg-color: #B5D6FC; --select-text-font-color: auto; --monospace: "Lucida Console",Consolas,"Courier",monospace; }
+html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0px; padding: 0px; height: auto; bottom: 0px; top: 0px; left: 0px; right: 0px; font-size: 1rem; line-height: 1.42857143; overflow-x: hidden; background-image: inherit; background-size: inherit; background-attachment: inherit; background-origin: inherit; background-clip: inherit; background-color: inherit; tab-size: 4; background-position: inherit inherit; background-repeat: inherit inherit; }
+iframe { margin: auto; }
+a.url { word-break: break-all; }
+a:active, a:hover { outline: 0px; }
+.in-text-selection, ::selection { text-shadow: none; background: var(--select-text-bg-color); color: var(--select-text-font-color); }
+#write { margin: 0px auto; height: auto; width: inherit; word-break: normal; word-wrap: break-word; position: relative; white-space: normal; overflow-x: visible; padding-top: 40px; }
+#write.first-line-indent p { text-indent: 2em; }
+#write.first-line-indent li p, #write.first-line-indent p * { text-indent: 0px; }
+#write.first-line-indent li { margin-left: 2em; }
+.for-image #write { padding-left: 8px; padding-right: 8px; }
+body.typora-export { padding-left: 30px; padding-right: 30px; }
+.typora-export .footnote-line, .typora-export li, .typora-export p { white-space: pre-wrap; }
+@media screen and (max-width: 500px) { 
+  body.typora-export { padding-left: 0px; padding-right: 0px; }
+  #write { padding-left: 20px; padding-right: 20px; }
+  .CodeMirror-sizer { margin-left: 0px !important; }
+  .CodeMirror-gutters { display: none !important; }
+}
+#write li > figure:last-child { margin-bottom: 0.5rem; }
+#write ol, #write ul { position: relative; }
+img { max-width: 100%; vertical-align: middle; image-orientation: from-image; }
+button, input, select, textarea { color: inherit; font-family: inherit; font-size: inherit; font-style: inherit; font-variant-caps: inherit; font-weight: inherit; font-stretch: inherit; line-height: inherit; }
+input[type="checkbox"], input[type="radio"] { line-height: normal; padding: 0px; }
+*, ::after, ::before { box-sizing: border-box; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p, #write pre { width: inherit; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p { position: relative; }
+p { line-height: inherit; }
+h1, h2, h3, h4, h5, h6 { break-after: avoid-page; break-inside: avoid; orphans: 4; }
+p { orphans: 4; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+h5 { font-size: 1.2rem; }
+h6 { font-size: 1rem; }
+.md-math-block, .md-rawblock, h1, h2, h3, h4, h5, h6, p { margin-top: 1rem; margin-bottom: 1rem; }
+.hidden { display: none; }
+.md-blockmeta { color: rgb(204, 204, 204); font-weight: 700; font-style: italic; }
+a { cursor: pointer; }
+sup.md-footnote { padding: 2px 4px; background-color: rgba(238, 238, 238, 0.7); color: rgb(85, 85, 85); border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; cursor: pointer; }
+sup.md-footnote a, sup.md-footnote a:hover { color: inherit; text-transform: inherit; text-decoration: inherit; }
+#write input[type="checkbox"] { cursor: pointer; width: inherit; height: inherit; }
+figure { overflow-x: auto; margin: 1.2em 0px; max-width: calc(100% + 16px); padding: 0px; }
+figure > table { margin: 0px; }
+tr { break-inside: avoid; break-after: auto; }
+thead { display: table-header-group; }
+table { border-collapse: collapse; border-spacing: 0px; width: 100%; overflow: auto; break-inside: auto; text-align: left; }
+table.md-table td { min-width: 32px; }
+.CodeMirror-gutters { border-right-width: 0px; background-color: inherit; }
+.CodeMirror-linenumber { }
+.CodeMirror { text-align: left; }
+.CodeMirror-placeholder { opacity: 0.3; }
+.CodeMirror pre { padding: 0px 4px; }
+.CodeMirror-lines { padding: 0px; }
+div.hr:focus { cursor: none; }
+#write pre { white-space: pre-wrap; }
+#write.fences-no-line-wrapping pre { white-space: pre; }
+#write pre.ty-contain-cm { white-space: normal; }
+.CodeMirror-gutters { margin-right: 4px; }
+.md-fences { font-size: 0.9rem; display: block; break-inside: avoid; text-align: left; overflow: visible; white-space: pre; background-image: inherit; background-size: inherit; background-attachment: inherit; background-origin: inherit; background-clip: inherit; background-color: inherit; position: relative !important; background-position: inherit inherit; background-repeat: inherit inherit; }
+.md-diagram-panel { width: 100%; margin-top: 10px; text-align: center; padding-top: 0px; padding-bottom: 8px; overflow-x: auto; }
+#write .md-fences.mock-cm { white-space: pre-wrap; }
+.md-fences.md-fences-with-lineno { padding-left: 0px; }
+#write.fences-no-line-wrapping .md-fences.mock-cm { white-space: pre; overflow-x: auto; }
+.md-fences.mock-cm.md-fences-with-lineno { padding-left: 8px; }
+.CodeMirror-line, twitterwidget { break-inside: avoid; }
+.footnotes { opacity: 0.8; font-size: 0.9rem; margin-top: 1em; margin-bottom: 1em; }
+.footnotes + .footnotes { margin-top: 0px; }
+.md-reset { margin: 0px; padding: 0px; border: 0px; outline: 0px; vertical-align: top; text-decoration: none; text-shadow: none; float: none; position: static; width: auto; height: auto; white-space: nowrap; cursor: inherit; line-height: normal; font-weight: 400; text-align: left; box-sizing: content-box; direction: ltr; background-position: 0px 0px; background-repeat: initial initial; }
+li div { padding-top: 0px; }
+blockquote { margin: 1rem 0px; }
+li .mathjax-block, li p { margin: 0.5rem 0px; }
+li { margin: 0px; position: relative; }
+blockquote > :last-child { margin-bottom: 0px; }
+blockquote > :first-child, li > :first-child { margin-top: 0px; }
+.footnotes-area { color: rgb(136, 136, 136); margin-top: 0.714rem; padding-bottom: 0.143rem; white-space: normal; }
+#write .footnote-line { white-space: pre-wrap; }
+@media print { 
+  body, html { border: 1px solid transparent; height: 99%; break-after: avoid; break-before: avoid; font-variant-ligatures: no-common-ligatures; }
+  #write { margin-top: 0px; padding-top: 0px; border-color: transparent !important; }
+  .typora-export * { -webkit-print-color-adjust: exact; }
+  html.blink-to-pdf { font-size: 13px; }
+  .typora-export #write { padding-left: 32px; padding-right: 32px; padding-bottom: 0px; break-after: avoid; }
+  .typora-export #write::after { height: 0px; }
+  .is-mac table { break-inside: avoid; }
+}
+.footnote-line { margin-top: 0.714em; font-size: 0.7em; }
+a img, img a { cursor: pointer; }
+pre.md-meta-block { font-size: 0.8rem; min-height: 0.8rem; white-space: pre-wrap; background-color: rgb(204, 204, 204); display: block; overflow-x: hidden; background-position: initial initial; background-repeat: initial initial; }
+p > .md-image:only-child:not(.md-img-error) img, p > img:only-child { display: block; margin: auto; }
+#write.first-line-indent p > .md-image:only-child:not(.md-img-error) img { left: -2em; position: relative; }
+p > .md-image:only-child { display: inline-block; width: 100%; }
+#write .MathJax_Display { margin: 0.8em 0px 0px; }
+.md-math-block { width: 100%; }
+.md-math-block:not(:empty)::after { display: none; }
+[contenteditable="true"]:active, [contenteditable="true"]:focus, [contenteditable="false"]:active, [contenteditable="false"]:focus { outline: 0px; box-shadow: none; }
+.md-task-list-item { position: relative; list-style-type: none; }
+.task-list-item.md-task-list-item { padding-left: 0px; }
+.md-task-list-item > input { position: absolute; top: 0px; left: 0px; margin-left: -1.2em; margin-top: calc(1em - 10px); border: none; }
+.math { font-size: 1rem; }
+.md-toc { min-height: 3.58rem; position: relative; font-size: 0.9rem; border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; }
+.md-toc-content { position: relative; margin-left: 0px; }
+.md-toc-content::after, .md-toc::after { display: none; }
+.md-toc-item { display: block; color: rgb(65, 131, 196); }
+.md-toc-item a { text-decoration: none; }
+.md-toc-inner:hover { text-decoration: underline; }
+.md-toc-inner { display: inline-block; cursor: pointer; }
+.md-toc-h1 .md-toc-inner { margin-left: 0px; font-weight: 700; }
+.md-toc-h2 .md-toc-inner { margin-left: 2em; }
+.md-toc-h3 .md-toc-inner { margin-left: 4em; }
+.md-toc-h4 .md-toc-inner { margin-left: 6em; }
+.md-toc-h5 .md-toc-inner { margin-left: 8em; }
+.md-toc-h6 .md-toc-inner { margin-left: 10em; }
+@media screen and (max-width: 48em) { 
+  .md-toc-h3 .md-toc-inner { margin-left: 3.5em; }
+  .md-toc-h4 .md-toc-inner { margin-left: 5em; }
+  .md-toc-h5 .md-toc-inner { margin-left: 6.5em; }
+  .md-toc-h6 .md-toc-inner { margin-left: 8em; }
+}
+a.md-toc-inner { font-size: inherit; font-style: inherit; font-weight: inherit; line-height: inherit; }
+.footnote-line a:not(.reversefootnote) { color: inherit; }
+.md-attr { display: none; }
+.md-fn-count::after { content: "."; }
+code, pre, samp, tt { font-family: var(--monospace); }
+kbd { margin: 0px 0.1em; padding: 0.1em 0.6em; font-size: 0.8em; color: rgb(36, 39, 41); background-color: rgb(255, 255, 255); border: 1px solid rgb(173, 179, 185); border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-right-radius: 3px; border-bottom-left-radius: 3px; box-shadow: rgba(12, 13, 14, 0.2) 0px 1px 0px, rgb(255, 255, 255) 0px 0px 0px 2px inset; white-space: nowrap; vertical-align: middle; background-position: initial initial; background-repeat: initial initial; }
+.md-comment { color: rgb(162, 127, 3); opacity: 0.8; font-family: var(--monospace); }
+code { text-align: left; }
+a.md-print-anchor { white-space: pre !important; border: none !important; display: inline-block !important; position: absolute !important; width: 1px !important; right: 0px !important; outline: 0px !important; text-shadow: initial !important; background-position: 0px 0px !important; background-repeat: initial initial !important; }
+.md-inline-math .MathJax_SVG .noError { display: none !important; }
+.html-for-mac .inline-math-svg .MathJax_SVG { vertical-align: 0.2px; }
+.md-math-block .MathJax_SVG_Display { text-align: center; margin: 0px; position: relative; text-indent: 0px; max-width: none; max-height: none; min-height: 0px; min-width: 100%; width: auto; overflow-y: hidden; display: block !important; }
+.MathJax_SVG_Display, .md-inline-math .MathJax_SVG_Display { width: auto; margin: inherit; display: inline-block !important; }
+.MathJax_SVG .MJX-monospace { font-family: var(--monospace); }
+.MathJax_SVG .MJX-sans-serif { font-family: sans-serif; }
+.MathJax_SVG { display: inline; font-style: normal; font-weight: 400; line-height: normal; zoom: 90%; text-indent: 0px; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0px; min-height: 0px; border: 0px; padding: 0px; margin: 0px; }
+.MathJax_SVG * { transition: none; }
+.MathJax_SVG_Display svg { vertical-align: middle !important; margin-bottom: 0px !important; margin-top: 0px !important; }
+.os-windows.monocolor-emoji .md-emoji { font-family: "Segoe UI Symbol", sans-serif; }
+.md-diagram-panel > svg { max-width: 100%; }
+[lang="flow"] svg, [lang="mermaid"] svg { max-width: 100%; height: auto; }
+[lang="mermaid"] .node text { font-size: 1rem; }
+table tr th { border-bottom-width: 0px; }
+video { max-width: 100%; display: block; margin: 0px auto; }
+iframe { max-width: 100%; width: 100%; border: none; }
+.highlight td, .highlight tr { border: 0px; }
+svg[id^="mermaidChart"] { line-height: 1em; }
+mark { background-color: rgb(255, 255, 0); color: rgb(0, 0, 0); background-position: initial initial; background-repeat: initial initial; }
+.md-html-inline .md-plain, .md-html-inline strong, mark .md-inline-math, mark strong { color: inherit; }
+mark .md-meta { color: rgb(0, 0, 0); opacity: 0.3 !important; }
+
+
+:root {
+    --side-bar-bg-color: #fafafa;
+    --control-text-color: #777;
+}
+
+@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+
+/* open-sans-regular - latin-ext_latin */
+  /* open-sans-italic - latin-ext_latin */
+    /* open-sans-700 - latin-ext_latin */
+    /* open-sans-700italic - latin-ext_latin */
+  html {
+    font-size: 16px;
+}
+
+body {
+    font-family: "Open Sans","Clear Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: rgb(51, 51, 51);
+    line-height: 1.6;
+}
+
+#write {
+    max-width: 860px;
+  	margin: 0 auto;
+  	padding: 30px;
+    padding-bottom: 100px;
+}
+
+@media only screen and (min-width: 1400px) {
+	#write {
+		max-width: 1024px;
+	}
+}
+
+@media only screen and (min-width: 1800px) {
+	#write {
+		max-width: 1200px;
+	}
+}
+
+#write > ul:first-child,
+#write > ol:first-child{
+    margin-top: 30px;
+}
+
+a {
+    color: #4183C4;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    position: relative;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    line-height: 1.4;
+    cursor: text;
+}
+h1:hover a.anchor,
+h2:hover a.anchor,
+h3:hover a.anchor,
+h4:hover a.anchor,
+h5:hover a.anchor,
+h6:hover a.anchor {
+    text-decoration: none;
+}
+h1 tt,
+h1 code {
+    font-size: inherit;
+}
+h2 tt,
+h2 code {
+    font-size: inherit;
+}
+h3 tt,
+h3 code {
+    font-size: inherit;
+}
+h4 tt,
+h4 code {
+    font-size: inherit;
+}
+h5 tt,
+h5 code {
+    font-size: inherit;
+}
+h6 tt,
+h6 code {
+    font-size: inherit;
+}
+h1 {
+    padding-bottom: .3em;
+    font-size: 2.25em;
+    line-height: 1.2;
+    border-bottom: 1px solid #eee;
+}
+h2 {
+   padding-bottom: .3em;
+    font-size: 1.75em;
+    line-height: 1.225;
+    border-bottom: 1px solid #eee;
+}
+h3 {
+    font-size: 1.5em;
+    line-height: 1.43;
+}
+h4 {
+    font-size: 1.25em;
+}
+h5 {
+    font-size: 1em;
+}
+h6 {
+   font-size: 1em;
+    color: #777;
+}
+p,
+blockquote,
+ul,
+ol,
+dl,
+table{
+    margin: 0.8em 0;
+}
+li>ol,
+li>ul {
+    margin: 0 0;
+}
+hr {
+    height: 2px;
+    padding: 0;
+    margin: 16px 0;
+    background-color: #e7e7e7;
+    border: 0 none;
+    overflow: hidden;
+    box-sizing: content-box;
+}
+
+li p.first {
+    display: inline-block;
+}
+ul,
+ol {
+    padding-left: 30px;
+}
+ul:first-child,
+ol:first-child {
+    margin-top: 0;
+}
+ul:last-child,
+ol:last-child {
+    margin-bottom: 0;
+}
+blockquote {
+    border-left: 4px solid #dfe2e5;
+    padding: 0 15px;
+    color: #777777;
+}
+blockquote blockquote {
+    padding-right: 0;
+}
+table {
+    padding: 0;
+    word-break: initial;
+}
+table tr {
+    border-top: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 0;
+}
+table tr:nth-child(2n),
+thead {
+    background-color: #f8f8f8;
+}
+table tr th {
+    font-weight: bold;
+    border: 1px solid #dfe2e5;
+    border-bottom: 0;
+    margin: 0;
+    padding: 6px 13px;
+}
+table tr td {
+    border: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 6px 13px;
+}
+table tr th:first-child,
+table tr td:first-child {
+    margin-top: 0;
+}
+table tr th:last-child,
+table tr td:last-child {
+    margin-bottom: 0;
+}
+
+.CodeMirror-lines {
+    padding-left: 4px;
+}
+
+.code-tooltip {
+    box-shadow: 0 1px 1px 0 rgba(0,28,36,.3);
+    border-top: 1px solid #eef2f2;
+}
+
+.md-fences,
+code,
+tt {
+    border: 1px solid #e7eaed;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+    padding: 0;
+    padding: 2px 4px 0px 4px;
+    font-size: 0.9em;
+}
+
+code {
+    background-color: #f3f4f4;
+    padding: 0 2px 0 2px;
+}
+
+.md-fences {
+    margin-bottom: 15px;
+    margin-top: 15px;
+    padding-top: 8px;
+    padding-bottom: 6px;
+}
+
+
+.md-task-list-item > input {
+  margin-left: -1.3em;
+}
+
+@media print {
+    html {
+        font-size: 13px;
+    }
+    table,
+    pre {
+        page-break-inside: avoid;
+    }
+    pre {
+        word-wrap: break-word;
+    }
+}
+
+.md-fences {
+	background-color: #f8f8f8;
+}
+#write pre.md-meta-block {
+	padding: 1rem;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f7f7f7;
+    border: 0;
+    border-radius: 3px;
+    color: #777777;
+    margin-top: 0 !important;
+}
+
+.mathjax-block>.code-tooltip {
+	bottom: .375rem;
+}
+
+.md-mathjax-midline {
+    background: #fafafa;
+}
+
+#write>h3.md-focus:before{
+	left: -1.5625rem;
+	top: .375rem;
+}
+#write>h4.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h5.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h6.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+.md-image>.md-meta {
+    /*border: 1px solid #ddd;*/
+    border-radius: 3px;
+    padding: 2px 0px 0px 4px;
+    font-size: 0.9em;
+    color: inherit;
+}
+
+.md-tag {
+    color: #a7a7a7;
+    opacity: 1;
+}
+
+.md-toc { 
+    margin-top:20px;
+    padding-bottom:20px;
+}
+
+.sidebar-tabs {
+    border-bottom: none;
+}
+
+#typora-quick-open {
+    border: 1px solid #ddd;
+    background-color: #f8f8f8;
+}
+
+#typora-quick-open-item {
+    background-color: #FAFAFA;
+    border-color: #FEFEFE #e5e5e5 #e5e5e5 #eee;
+    border-style: solid;
+    border-width: 1px;
+}
+
+/** focus mode */
+.on-focus-mode blockquote {
+    border-left-color: rgba(85, 85, 85, 0.12);
+}
+
+header, .context-menu, .megamenu-content, footer{
+    font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+.file-node-content:hover .file-node-icon,
+.file-node-content:hover .file-node-open-state{
+    visibility: visible;
+}
+
+.mac-seamless-mode #typora-sidebar {
+    background-color: #fafafa;
+    background-color: var(--side-bar-bg-color);
+}
+
+.md-lang {
+    color: #b4654d;
+}
+
+.html-for-mac .context-menu {
+    --item-hover-bg-color: #E6F0FE;
+}
+
+#md-notification .btn {
+    border: 0;
+}
+
+.dropdown-menu .divider {
+    border-color: #e5e5e5;
+}
+
+.ty-preferences .window-content {
+    background-color: #fafafa;
+}
+
+.ty-preferences .nav-group-item.active {
+    color: white;
+    background: #999;
+}
+
+
+</style>
+</head>
+<body class='typora-export' >
+<div  id='write'  class = ''><div class='md-toc' mdtype='toc'><p class="md-toc-content" role="list"><span role="listitem" class="md-toc-item md-toc-h1" data-ref="n93"><a class="md-toc-inner" href="#interview-preparation">interview-preparation</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n3"><a class="md-toc-inner" href="#实习经历">实习经历:</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n18"><a class="md-toc-inner" href="#面试心态">面试心态:</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n30"><a class="md-toc-inner" href="#面试内容">面试内容：</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n34"><a class="md-toc-inner" href="#面试注意事项">面试注意事项:</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n47"><a class="md-toc-inner" href="#平时积累">平时积累:</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n53"><a class="md-toc-inner" href="#工作内容">工作内容:</a></span><span role="listitem" class="md-toc-item md-toc-h3" data-ref="n55"><a class="md-toc-inner" href="#补充">补充：</a></span><span role="listitem" class="md-toc-item md-toc-h2" data-ref="n81"><a class="md-toc-inner" href="#others">Others:</a></span></p></div><h1><a name="interview-preparation" class="md-header-anchor"></a><span>interview-preparation</span></h1><p><span>将平日里阅读到到一些关于面试内容、心态和方法的文字整理如下，希望对自己和读者有所帮助。</span></p><h2><a name="实习经历" class="md-header-anchor"></a><span>实习经历:</span></h2><ul><li><span>简历项目：简单描述遇到的问题，具体怎么解决，达到的效果如何。</span></li><li><span>考察候选人的业务能力，在过往的实习项目中担任过怎么样的角色，解决了怎么样的问题，是否提出过很好的问题，coding 能力的边界，是否有足够的能力胜任应聘岗位。</span></li><li><span>是否具有很好的逻辑能力、抗压能力。</span></li><li><span>是否可以很好地倾听需求，表达想法。</span></li><li><span>思考方式和把握更重要。候选人需要展示出对项目问题的深入理解和 insight.</span></li><li><span>简历不是技术报告，而是对自身经历和能力的快速传达。</span></li></ul><p><span>例如：本人首先尝试了 YOLO 等 one stage 检测器，但是因误检较多，后尝试了 Faster RCNN，并加入了 Deformable Conv 增强尺度不变性，OHEM 处理难样本。后续针对问题中 XXX 的特点，提出了 YYY 的解决办法。</span></p><h2><a name="面试心态" class="md-header-anchor"></a><span>面试心态:</span></h2><p><strong><span>自信跟盲目</span></strong><span>自大的区别就在于「</span><strong><span>对自我清晰了解</span></strong><span>」，因此要做到自信首先要增加对自我的了解 —— 什么是我的强项，什么是我的弱项。</span></p><ul><li><span>对于强项，你应该尽可能多的发挥出来，尤其是在能够表现你特质时；</span></li><li><span>对于弱项，你不应该表现出有任何的安全感缺失，就算别人指出了你也能坦然承认不会反应过度。</span></li><li><span>表现出对自我清晰了解而带来的自信，没什么能让你感到不适。</span></li></ul><p><span>因此，首先你要把面试看作一个平等的双向选择过程，不仅仅公司在选择你，你也在选择公司。如果面试官问的问题显得他很没有品味，或者是 HR 的某些安排让你觉得这家公司的文化很有问题，你随时可以提出说你没兴趣聊下去。这时候你反而可以比较好的发挥出来你真实的实力。对于你真的不知道的问题，你就直接说出哪部分你不知道或者不确定。同事间讨论也会遇到你不懂的问题，你平时是怎么处理的在面试时就怎么处理，面试官不会因为你直率地表达不懂某个点而鄙视你的，他应该帮你把这个点绕过去然后继续。</span></p><p><span>有些心理学上的技巧可以让你显得自信一点的，例如说在公司大堂等待的时候尝试深呼吸和伸展一下四肢。由于人的心理状态和身体语言是互相加强的，所以如果你使用自信的身体语言，你就会无意识地被「误导」以为自己确实自信，不过这正是你想要的效果。</span></p><p><span>面试的话，面试官也会很放松，但面试者通常处于比较紧张的状态，身体会略为前倾，就算不需要写字也会把手放在桌子上，用于支撑上半身的重量。对于有经验或者有感觉的面试官来说，这种肢体语言会传递一种不好的信号，那就是你太想要这份工作了，就算更深入的沟通后可能你会发现这份工作不适合你，但你还是会追求这个机会。</span></p><h2><a name="面试内容" class="md-header-anchor"></a><span>面试内容：</span></h2><p><span>尽管面试有个「试」字，但在真正好的技术面试其实不是一问一答的考试，更多是如同同事之间的技术讨论一样，从比较糟糕的解决方案开始做优化，直到做到大家都可以接受的程度为之。</span></p><p><span>然后你不要高估题目的难度。有些人可能被 Google 中国的某些面试官虐待过，觉得越是好的公司题目自然越难，但这其实是中国应试体系的思维方式而已，题目难度不是筛选出少数人的唯一手段。就好像同事问你问题一样，问及的事情有可能是你完全没做过的，你就凭借常识来提供一些基本的判断；也有可能是你深入研究过的领域，你可以说出很多细节和难以遇见的问题。面对后面一种情况，假设你说的都是对的，面试官会很开心；面对前面一种情况，面试官会让你说出更多细节，或者问你哪里还能继续优化，这时候你就知道你的答案和已知最优答案还有差距了。（有些 Google 面试官会在你给出该问题业界已知最优解后仍然问你能不能继续优化。）所以千万不要一开始就假设题目很难，觉得给出一个没有优化过的答案很丢脸。</span></p><p><span>我相信我前面的两位面试官做得足够好，然后我可以放胆地去考量「懂不懂」之外的其它方面。准确来说，这甚至不是一种考量，我只想知道我跟这个人一起工作是否会很愉快。我会以工作上遇到问题时同事跟同事间讨论的方式去跟他进行讨论，有可能是工作上实际遇到的问题，也有可能是刻意设计出来的有趣问题。（我觉得在一个充满活力的工作环境中，同事之间互相找些稀奇古怪的问题来讨论是很正常的，大家也会享受这类挑战。）如果我感觉跟他讨论问题是很愉快的过程，他能够提出有趣的想法，甚至能告诉我一些原本我不知道的事情，我肯定会给他很正面的面试评价。</span></p><h2><a name="面试注意事项" class="md-header-anchor"></a><span>面试注意事项:</span></h2><ul><li><span>保持自信：走进面试房间之前，检查一下自己的手心是不是湿的（紧张的时候手心容易出汗），如果是，擦干了再走进去，握手的时候就不会让面试官觉得你非常紧张。 深吸一口气，默默的告诉自己没问题（这样的自我暗示还是挺有用的）。走进房间，主动给面试官打个招呼，给一个有力的握手，留下一个自信的第一印象；</span></li><li><span>保证交流表达的顺畅：不少的朋友觉得自己的英文说得不准确，怕说错，所以很小声；同时紧张起来往往越说越快。对方听起来声音很小、口音不一样、加上语速太快，就很难听明白。所以，说话的时候声音一定要足够大，让对方能听得很清楚（包括的你念错的词也要能听清楚）。同时，你可以主动放慢自己的语速，并且要求对方适当放慢他们的语速，不要害羞担心别人觉得你的英语不够好。在国际范围招聘工程师的公司，东欧和亚洲的非英语工程师都很多，里面的员工是能够理解并且愿意减慢语速的。如果语言交流还有障碍，可以用白板（或者黑板）写下关键的问题和术语；</span></li><li><span>确认双方对问题的理解一致：硅谷的公司面试往往是使用工作里面碰到的实际问题，做一定的简化，改成可以在30分钟之内解决的问题。问题往往不是教科书上看过的；或者，更危险的情况是问题看起来跟教科书上看过的类似，但实际上有本质不同。如果你没有跟面试的同事确认你们俩对问题的理解是一样的，那很容易发生的情况是你按照自己的理解花30分钟写出程序，然后面试官说“这不是我要的答案啊”。 比较稳妥的方法是你主动针对问题提出一些讨论，比如用几个简单而有代表性例子把问题的输入和期待输出都描述清楚，双方都同意这一组输入输出，然后再动手解决；这也自动的给你一组测试例子了；</span></li><li><span>确认对方理解你的解决方案：我见过不少的例子是面试者用很复杂的算法（往往需要一片论文来证明正确性）来得到一定的算法复杂度优化。大部分的工程师并没有那么专注于学术，面试官很可能看不明白。而面试者本人也很难在10分钟内把一片论文的正确性证明说清楚。这样的结果是别人不可能很快的同意你的解决方案（在实际工作里面，就是你的程序很难通过Code Review），而在45分钟的面试里面，面试官就不能赞成录取你。我给面试者的建议是：如果一个算法不能在5分钟之内用英文解释清楚，就不要在45分钟的面试里面用这个算法。</span></li><li><span>最后，最重要的 &quot;tip” 是把面试官当成你的同事，而不是监考老师。整个面试的过程，技术题目解答（程序）的优劣大概只占一半的权重，同样重要的是你能否从头到尾解决一个实际问题。这是一个过程：理解问题的本质、约束条件、时间和空间的取舍、你们 deadline（30～45分钟）和工作量的取舍（复杂的好算法还是简单的“能用的”算法）、 最后你的程序写好了还要能让你的同事看懂并且同意你的解决方案。</span></li></ul><p><span>我看到过的最优秀的面试者往往把自己沉浸于跟面试官共同工作的状态，主动分析问题，甚至对问题提出异议，一起讨论，就解决方案达成一致，然后挽起袖子写出一个漂亮的程序，再主动根据讨论的例子对程序进行测试，最后提出自己对自己的解决方案的批评和下一步可改进的地方。 这样走下来，即便写出来的程序不是最优的，你在整个过程里面表现出来的经验和技术能力都会让人刮目相看。</span></p><h2><a name="平时积累" class="md-header-anchor"></a><span>平时积累:</span></h2><p><span>提高思考的频率、广度和深度，增强执行力。</span></p><p><span>你最好能找到自己觉得有意思且重要的课题，而非是能发 XXX 会议的课题。只有这样你的内心才有动力，而非迷茫与功利。而这一切的前提，也还是要有一定的思考和观察，毕竟好的点子不会从天上掉下来。而当你的工作质量上去了，得到关注与发表到好的期刊/会议只是水到渠成而已。</span></p><p><span>所以在投身机器学习科研前，或者任何科研领域前，不如先想想自己的目的是啥，是为了找工作？发大财？当科学家？还是？没了解清楚前，不要给自己定一个虚无缥缈的的目标，也不要读了大牛的成功故事就感到自惭形秽。日子是我们自己的，你被感动、被激励只是说明人家文章写得好，和我们关系不大。你学学写作技巧后，最好赶快回到现实世界里来比较重要。不要给自己加戏，自怨自艾、感动、受鼓舞，都大可不必，务实就好。</span></p><p><span>思考的频率、广度和深度执行力思考的频率指的是回溯旧问题的次数，这种习惯可以培养。比如我们学习到的新知识其实是一件件工具，不断用学到的新工具去重新思考以前的旧问题，往往新工具就能解决旧问题。我的一个建议不如把自己遇到的各种科研问题，不论多么不成熟都记下来在本子上，每过一阵子去翻看一遍学到的新知是否能够解决新问题。比如没学数据结构前，你总在想为啥我实现的机器学习模型这么慢，学了以后才知道搜索近邻可以用 kd-tree，要是可并行的任务可以分解成小任务在多个 core 上运行。</span></p><p><span>很多问题的答案其实非常朴实无华，但当你知道答案时，往往连问题都忘了，所以你总是没有好点子。因此要不断的记录，不断的回溯。随着你不断重复这个过程，思考的广度和深度都会上升。 我喜欢的是在夜跑出发前选一个主题，一边跑就一边天马行空想和这个主题相关的内容。跑完步再把内容记录下来（我一般看情况会选择纸质笔记或者 evernote ，最后再整理到 OneNote 里）。你往往想着 A 主题，就会联想到 B，时间长了就会有一些靠谱的点子出来。 其次就是执行力，人最终的问题就是想太多而做太少。绝大部分学术新星一开始的点子也是老板给的，或者一开始的工作也并非特别惊艳。但做的多了，质量总是会上升的。务实的说，有了尚可的点子就先做实验，有了尚可的实验结果就写论文，今天发不 了CVPR 就先发 ICIP，迭代式上升才是符合普通人的路线。如果想要奔着搞大新闻的目标做科研，往往会卡很久很久很久...很久很久很久。但也不能总恰烂文章，必须逐步提高对自己的要求。</span></p><h2><a name="工作内容" class="md-header-anchor"></a><span>工作内容:</span></h2><p><span>在工作中，更重要也更具挑战性的部分往往是如何利用现有知识来解决实际问题。这个时候，扎实的基础知识以及优秀的实验分析能力，往往是解决这些挑战性问题的关键.</span></p><h3><a name="补充" class="md-header-anchor"></a><span>补充：</span></h3><p><span>正文开始之前，请你先想像一个场景：有一天，你的老板找到你，让你和另一名工程师合作完成一个项目，那么你希望这名的工程师具有什么样的品质？开发速度快( coding machine )？代码清晰易懂？接口易用？系统搞设计能力强？知识渊博？靠谱？有激情？容易相处？自我驱动力强？或者以上所有？那么你所想看到的优点也就同样是你在面试时候需要考察的重点。面试首先要明确目标，再通过目标反向推导出面试的考察点和内容。硅谷大公司的面试分为三种类型：编程面试，系统设计面试，行为面试。一般在编程面试或者系统设计面试中不会涉及行为面试，但是在行为面试中可能会加入简单的系统设计以及编程。本文主要分享的是编程面试的经验总结，所以不会涉及过多的系统设计或者行为面试的内容。其他类型的面试会在之后的文章中讨论。</span></p><ul><li><span>问题是什么 ？</span></li><li><span>问题涉及到的范围是什么 ？</span></li><li><span>它的输入输出是什么 ？</span></li><li><span>如何建立评价标准 ？</span></li><li><span>解决问题 !</span></li></ul><p><span>编程面试主要测试面试者的如下几点能力和品质：解决复杂问题的能力，沟通能力，编程能力，调试能力，测试能力，知识储备等。除此之外，面试者的态度，习惯等也在考察范围之内。</span></p><ul><li><span>解决问题：解决问题的能力包括是否能把复杂问题简单化，比如把一个大的问题分解成若干个小的问题。面对复杂问题的时候，面试者能否先想出一个简单的解法而非最优的解法。在工作中，我们经常会遇到复杂的项目和问题，需要工程师把问题分解，先想出一个方案可以快速满足需求。</span></li><li><span>沟通能力：沟通能力十分重要。我相信很多人都经历过因为沟通中出现的问题导致项目进展不顺利或者做了无用的努力。在系统设计和行为面试两轮会对面试者的沟通能力有更全面的评估，代码轮更多的是考察面试者解释思路的能力。</span></li><li><span>编程能力：这个涉及的范围就非常广泛了：代码的正确性，结构是否清晰，设计是否合理，编程习惯是否良好，代码是否易读，速度是否快。对于代码的要求和在平时工作当中是一样的，并不会因为是在面试而降低要求。</span></li><li><span>调试能力：我很少见到有人在面试的时候能把代码一次写对，编译和运行的过程当中总会有错误。我们需要每一位工程师都有能快速找出代码问题的能力。</span></li><li><span>测试能力：这里最重要的一点是能否找出所有的edge case以提高测试的覆盖率。我们每天在做代码审查的时候会尽量考虑到所有可能的情况。然而现实中，大部分的 edge case 都是由代码编写者发现并处理。所以写好测试的能力是十分重要的。</span></li></ul><p>&nbsp;</p><h2><a name="others" class="md-header-anchor"></a><span>Others:</span></h2><p><span>The Hype Cycle早就将这个过程定义的非常清晰，任何事物的发展都会经历从诞生、过热、泡沫、重来、实际产生价值的5个不同阶段。所以的确，现在CV这个领域的赛道看似已经拥挤不堪，但真正那些可以最终给公司带来价值人，却凤毛麟角。</span></p><p><span>对于普通人来说，是，的确存在盲目涌入赛道的现象；</span></p><p><span>而对于金字塔顶尖人才来说，则赢者通吃。</span></p><p><span>那么，如何从容不迫地去面对来自外在环境的压力？乃岩用洋葱打了一个比方。最核心的是修炼自己的内功，就像是洋葱的最里面，这里面包含了一些基本的素质，例如好奇心、自驱力、分析和逻辑能力；中间一层则是针对问题的一些基础，例如对于数据的敏感度，Coding 和数理的基础等等，所谓行业应用，像是人脸识别、自动驾驶等等，才是最外层的。无论外部的应用如何改变，内核的基础才是最值得花时间去攻克和讨论的。</span></p><ul><li><span>presentation 的能力。这是很多学生最容易忽视的一点，而恰巧也是面试过程中，非常重要的一点。如何将自己的 research 通过一个更容易让人信服的形式展现出来。这其中包括了如何展现清晰的思考逻辑，如何分配详略和重点，如何运用语言等等。在之前的面试过程中，经常有候选人一上来就说 “用了 XX X网络”，而忽略了对前因后果有条理的表述，这是很减分的。这也是一个需要长期培养的能力，也希望大家尽早准备。</span></li><li><span>面试者应该尽量保持开放的心态，不要过于defensive。通常我们在面试环节，会循序渐进安排3-4个比较有挑战的问题，以此来发现候选人在过去的工作中是否有一些不足的地方。这个时候，如果可以大方承认工作中的不足，可以接受面试官的质疑，这点我是比较欣赏的。</span></li><li><span>主观能动性。这一点的考察，主要是看候选人在面对不会的问题时，是否有积极的思考，而不是遇到不会的问题就直接放弃，哪怕回答不完全正确都没有问题。我会在面试过程中，给面试者提升和引导，面试的过程是一个交互的工作，我希望面试者不是机械性地回答问题。</span></li></ul></div>
+</body>
+</html>
