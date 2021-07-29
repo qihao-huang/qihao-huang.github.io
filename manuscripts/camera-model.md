@@ -68,8 +68,8 @@ $$
 \begin{aligned}
 u & = \alpha\cdot x +c_x = \alpha \cdot f\frac{X_c}{Z} + c_x = f_x \cdot \frac{X_c}{Z} + c_x, 
   \  \ f_x = \alpha \cdot f \\
-v & =  \alpha\cdot y +c_y = \alpha \cdot f\frac{Y_c}{Z} + c_y = f_y \cdot \frac{Y_c}{Z} + c_y, 
-  \  \ f_y = \alpha \cdot f \\
+v & =  \beta\cdot y +c_y = \beta \cdot f\frac{Y_c}{Z} + c_y = f_y \cdot \frac{Y_c}{Z} + c_y, 
+  \  \ f_y = \beta \cdot f \\
 \end{aligned}
 \right.
 $$
