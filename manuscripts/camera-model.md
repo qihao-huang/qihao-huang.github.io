@@ -4,7 +4,9 @@
 
 ## Camera Frame to Image Frame
 
-Point $P$ coordinate in camera frame: $P_c = [ X_c, Y_c, Z_c]$, corresponding point $p$ coordinate in image coordinate: $p=[x, y]^T$. 
+Point $p$ coordinate in camera frame: $P_c = [ X_c, Y_c, Z_c]$, corresponding point $p$ coordinate in image coordinate: $p=[x, y]^T$. 
+
+$sdf$
 
 Given:
 $$
