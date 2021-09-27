@@ -1,10 +1,10 @@
-This is XeTeX, Version 3.14159265-2.6-0.999991 (TeX Live 2019) (preloaded format=xelatex 2020.4.2)  13 APR 2021 22:07
+This is XeTeX, Version 3.14159265-2.6-0.999991 (TeX Live 2019) (preloaded format=xelatex 2020.4.2)  27 SEP 2021 20:45
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/Users/quiescence/OneDrive/qihao-huang.github.io/resume_EN/qihao_resume
-(/Users/quiescence/OneDrive/qihao-huang.github.io/resume_EN/qihao_resume.tex
+**/Users/quiescence/Projects/qihao-huang.github.io/resume_EN/qihao_resume
+(/Users/quiescence/Projects/qihao-huang.github.io/resume_EN/qihao_resume.tex
 LaTeX2e <2018-12-01>
 (/usr/local/texlive/2019/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2018/09/03 v1.4i Standard LaTeX document class
@@ -925,6 +925,6 @@ Here is how much of TeX's memory you used:
  36356 multiletter control sequences out of 15000+600000
  536878 words of font info for 54 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 57i,7n,64p,639b,446s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 57i,6n,64p,647b,446s stack positions out of 5000i,500n,10000p,200000b,80000s
 
 Output written on qihao_resume.pdf (1 page).
