@@ -1,15 +1,15 @@
 # Major and Minors
 Major in Math of Computation, Minors in CS and Entrepreneurship.
 
-Earned 226 credits, surpassing the 160 credits required for graduation."
+Earned 226 credits, surpassing the 160 credits required for graduation.
 
 作为一个小镇做题家，读大学时候并不知道想要追求什么。
 
-随机游走 (Random Walk) 在校园之间，对科研、竞赛也没什么概念，吊车尾成绩勉强毕业。
+随机游走 (Random Walk) 在校园之间，对科研、升学也没什么概念，吊车尾成绩勉强毕业。
 
 但学了一些专业课，还挺有趣的。
 
-| CS                              | Math                          | entrepreneurship           |
+| CS                              | Math                          | Entrepreneurship           |
 | ------------------------------- | ----------------------------- | -------------------------- |
 | 计算机科学基础                  | 微积分 I                      | 团队沟通与领导力           |
 | 算法语言 C                      | 微积分 II                     | 管理学                     |
