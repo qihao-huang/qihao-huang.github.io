@@ -1,164 +1,548 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="shortcut icon" href="favicon.ico">
-  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-  <meta name="keywords" content="Qihao is Here!">
-  <meta name="description" content="Qihao is Here!">
-  <link rel="stylesheet" href="jemdoc.css" type="text/css" />
-  <title>Qihao is Here!</title>
+  <meta name="keywords" content="Qihao Huang, Autonomous Driving, Computer Vision, Machine Learning">
+  <meta name="description" content="Qihao Huang - Building autonomy products from scratch">
+  <title>Qihao Huang | 10x Engineer</title>
 
-  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-153986692-1"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
-
     gtag('config', 'UA-153986692-1');
   </script>
 
   <style>
-    @media screen and (max-device-width: 480px) {
-      /* body{
-      -webkit-text-size-adjust: none;
-    } */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    /* p { font-size : 16px; }
-    h1 { font-size : 34px; margin : 0; padding : 0; }
-    h2 { font-size : 20px; margin : 0; padding : 0; }
-    h3 { font-size : 18px; margin : 8; padding : 0; } */
-    /* body { padding : 0; font-family : Arial; font-size : 16px; background-color : #fff; } */
-    /* .title { width : 650px; margin : 20px auto; } */
-    /* .container { width : 750px; margin : 20px auto; border-radius: 10px;  background-color : #fff; padding : 20px;  clear:both;} */
-    /* #bio {
-        padding-top : 40px;
-    } */
-    /* #me { border : 0 solid black; margin-bottom : 50px; border-radius : 10px; } */
-    /* #sidebar { margin-left : 25px; border : 0 solid black; float : right; margin-bottom : 0;} */
-    /* a { text-decoration : none; } */
-    /* a:hover { text-decoration : underline; } */
-    /* a, a:visited { color : #0050e7; } */
-    .publogo {
-      width: 100 px;
-      margin-right: 20px;
-      float: left;
-      border: 0;
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #3b82f6;
+      --accent-color: #60a5fa;
+      --text-dark: #1e293b;
+      --text-light: #64748b;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
-    /* .publication { clear : left; padding-bottom : 0px; } */
-    /* .publication p { height : 100px; padding-top : 5px;} */
-    /* .publication strong a { color : #0000A0; } */
-    /* .publication .links { position : relative; top : 15px } */
-    /* .publication .links a { margin-right : 20px; } */
-    /* .codelogo { margin-right : 10px; float : left; border : 0;} */
-    /* .code {  clear : left; padding-bottom : 10px; vertical-align :middle;}  */
-    /* .code .download a { display : block; margin : 0 15px; float : left;} */
-    /* .code strong a { color : #000; } */
-    /* .external a { margin : 0 10px; } */
-    /* .external a.first { margin : 0 10px 0 0; } */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--text-dark);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Navigation */
+    nav {
+      position: sticky;
+      top: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      padding: 1rem 0;
+      transition: all 0.3s ease;
+    }
+
+    nav .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+    }
+
+    nav a {
+      color: var(--text-dark);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: var(--primary-color);
+      transition: all 0.3s ease;
+      transform: translateX(-50%);
+    }
+
+    nav a:hover::after {
+      width: 80%;
+    }
+
+    nav a:hover {
+      color: var(--primary-color);
+      background: var(--bg-light);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: var(--bg-white);
+      border-radius: 20px;
+      padding: 3rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-lg);
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 3rem;
+      align-items: center;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-content h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-content .subtitle {
+      font-size: 1.5rem;
+      color: var(--text-light);
+      margin-bottom: 1rem;
+    }
+
+    .hero-content .tagline {
+      font-size: 1.1rem;
+      color: var(--text-dark);
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .hero-content .experience {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .social-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .social-links a:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .email-link {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      padding: 0.6rem 1.2rem !important;
+      background: var(--bg-light) !important;
+      color: var(--text-dark) !important;
+    }
+
+    .hero-image {
+      text-align: center;
+    }
+
+    .hero-image img {
+      width: 100%;
+      max-width: 280px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      transition: all 0.3s ease;
+    }
+
+    .hero-image img:hover {
+      transform: scale(1.05);
+    }
+
+    /* Section */
+    .section {
+      background: var(--bg-white);
+      border-radius: 20px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-lg);
+      animation: fadeIn 0.6s ease;
+    }
+
+    .section h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-dark);
+      border-left: 4px solid var(--primary-color);
+      padding-left: 1rem;
+    }
+
+    /* Publication Card */
+    .publication-item {
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      background: var(--bg-light);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .publication-item:hover {
+      background: white;
+      border-left-color: var(--primary-color);
+      box-shadow: var(--shadow);
+      transform: translateX(5px);
+    }
+
+    .publication-item a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .publication-item a:hover {
+      color: var(--secondary-color);
+      text-decoration: underline;
+    }
+
+    .publication-meta {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+    }
+
+    /* Tags */
+    .tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .tag {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 2rem;
+      }
+
+      .hero-content h1 {
+        font-size: 2rem;
+      }
+
+      .hero-content .subtitle {
+        font-size: 1.2rem;
+      }
+
+      nav .nav-container {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0 1rem;
+      }
+
+      .container {
+        padding: 0 1rem;
+      }
+
+      .section {
+        padding: 1.5rem;
+      }
+
+      .social-links {
+        flex-direction: column;
+      }
+
+      .social-links a {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* Smooth Scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Loading Animation */
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
   </style>
-
 </head>
 
 <body>
-
-  <nav class="navbar navbar-dark navbar-expand-lg fixed-top">
-    <div id="layout-menu">
-        <a href="#Publications">Publications</a>
-        <a href="#Projects">Projects</a>
-        <a href="#Manuscripts">Manuscripts</a>
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <a href="#about">About</a>
+      <a href="#knowledge">Research</a>
+      <a href="#moments">Journey</a>
     </div>
-</nav>
-  
-  <div id="layout-content" style="margin-top:25px">
+  </nav>
 
-    <table>
-      <tbody>
-        <tr>
-          <td width="670">
-            <div id="toptitle">
-              <h1>Qihao Huang&nbsp;黄奇浩 <h1>
-            </div>
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Hero Section -->
+    <section id="about" class="hero">
+      <div class="hero-content">
+        <h1>Qihao Huang<span style="font-size: 0.7em; margin-left: 0.5rem;">黄奇浩</span></h1>
+        <div class="subtitle"> 10x Engineer</div>
+        <div class="tagline">Building autonomy products from scratch</div>
+        <div class="experience">
+          Previously at <strong>NIO AD</strong>, <strong>PlusAI</strong>, <strong>ByteDance</strong>, 
+          <strong>Apple</strong>, <strong>XYZ Robotics</strong>
+        </div>
+        <div class="social-links">
+          <a href="https://www.linkedin.com/in/qihaoo/" target="_blank">
+            <span>🔗</span> LinkedIn
+          </a>
+          <a href="https://scholar.google.com/citations?user=mNtNxUcAAAAJ&hl=en" target="_blank">
+            <span>🎓</span> Google Scholar
+          </a>
+          <a href="mailto:qihao.huang@outlook.com" class="email-link">
+            <span>📧</span> Email
+          </a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="pics/hqh.png" alt="Qihao Huang">
+      </div>
+    </section>
 
-              
+    <!-- Research & Publications -->
+    <section id="knowledge" class="section">
+      <h2>🔬 Research & Innovation</h2>
+      
+      <div class="publication-item">
+        <a href="https://mp.weixin.qq.com/s/8h8PcrWF5hQuxiMSNUgoqg" target="_blank">
+          Delivered E2E Planner from 0.5 to 1
+        </a>
+        <div class="tags">
+          <span class="tag">2025</span>
+          <span class="tag">End-to-End Planning</span>
+        </div>
+      </div>
 
-            <h3>Building autonomy product from scratch. </h3>
+      <div class="publication-item">
+        <a href="https://www.nio.cn/ad" target="_blank">Built Sparse Multi-modality BEV 3D Detection (Sparse, Vision+LiDAR, Temporal)</a>
+        <div class="tags">
+          <span class="tag">2024</span>
+          <span class="tag">3D Detection</span>
+          <span class="tag">BEV</span>
+        </div>
+      </div>
 
-            <p>
-                <del> Previously at NIO AD, PlusAI, ByteDance, Apple, XYZ Robotics.
-                </del>
-            </p>
-            <p>
-              Email: firstname.lastname AT outlook.com | <a href="https://www.linkedin.com/in/qihaoo/"> LinkedIn </a> 
-              | <a href="https://scholar.google.com/citations?user=mNtNxUcAAAAJ&hl=en"> Google Scholar </a>
-              <!-- <br> -->
-            </p>
+      <div class="publication-item">
+        <div>
+          Patents: 
+          <a href="https://patents.google.com/patent/CN120107930A" target="_blank">BEV Obstacle Classification</a>, 
+          <a href="https://patents.google.com/patent/CN120259812A" target="_blank">Data Closed-loop System</a>
+        </div>
+        <div class="tags">
+          <span class="tag">2024</span>
+          <span class="tag">Patent</span>
+        </div>
+      </div>
 
-          </td>
-          <td>
-            <img src="pics/hqh.png" border="0" width="240"></br>
-          </td>
-        <tr>
-      </tbody>
-    </table>
-    
-    <br>
-    <br>
-    
-    <div id="Manuscripts">
-    <h2>New Knowledge</h2>
-    <ul>
-      <li>
-        <a href="https://mp.weixin.qq.com/s/8h8PcrWF5hQuxiMSNUgoqg"> Delivered E2E Planner from 0.5 to 1 (2025). </a>
-      </li>
-      <li>
-        Built Sparse Multi-modality BEV 3D Detection (Sparse, Vision+LiDAR, Temporal) (2024).
-      </li>
-      <li>
-        Patents: <a href="https://patents.google.com/patent/CN120107930A"> BEV Obstacle Classification </a>, 
-                 <a href="https://patents.google.com/patent/CN120259812A"> Data Closed-loop System </a> (2024).
-      </li>
-      <li>
-        <a href="https://arxiv.org/pdf/2403.05402.pdf"> DualBEV: CNN is All You Need in View Transformation (ECCV 2024).</a>
-      </li>
-      <li>
-        <a href="https://zhuanlan.zhihu.com/p/681075174"> Stereo Perception Tech Share (2022/23) </a>
-      </li>
-      <li>
-        <a href="https://zhuanlan.zhihu.com/p/684231812"> BEV Occupancy 0-1 Share (2023/24).</a>
-      </li>
-      <li>
-        <a href="https://qihao-huang.github.io/manuscripts/long_range_bench.html"> 2000m Long Range Benchmark (2023).</a>
-      </li>      
-      <li>
-        <a href="https://www.tandfonline.com/eprint/U5UZ3INYJBVN8RMISM8K/full?target=10.1080/10447318.2025.2505775"> The Effect of ADAS on Truck Drivers’ Defensive Driving Behaviorsy (IJHCI 2025).</a> /
-        <a href="https://tjxb.ijournals.cn/jtuns/article/abstract/202406003"> (CN 2024) </a>
-      </li>
-      <li>
-        <a href="https://qihao-huang.github.io/manuscripts/DO3D_2021.pdf">Self-supervised Learning of Decomposed Object-wise 3D Motion and Depth from Monocular Videos (2021).</a> / 
-        <a href="https://arxiv.org/pdf/2403.05895.pdf"> arxiv </a> / <a href="https://patents.google.com/patent/CN114612510A"> patent </a>
-      </li>
-      <li>
-        <a href="https://qihao-huang.github.io/manuscripts/building_a_smarter_uni.pdf"> EN-CN Trans: Building a Smarter University (2018).</a>
-      </li>
-    </ul>
-    <h2>Moments</h2>
-    <ul>
-      <li>
-        <a href="https://qihao-huang.github.io/manuscripts/career_moments.html"> Career Moments at PlusAI, Apple, ByteDance, XYZ Robotics.</a>
-      </li>
-      <li>
-        <a href="https://qihao-huang.github.io/manuscripts/ZJU.html"> UG Courses at Math College and Chu Kochen Honors College of Zhejiang University .</a>
-      </li>
-      <li>
-        Love swimming 🏊 and badminton 🏸.</a>
-      </li>
-    </ul>
+      <div class="publication-item">
+        <a href="https://arxiv.org/pdf/2403.05402.pdf" target="_blank">
+          DualBEV: CNN is All You Need in View Transformation
+        </a>
+        <div class="tags">
+          <span class="tag">ECCV 2024</span>
+          <span class="tag">BEV</span>
+        </div>
+      </div>
+
+      <div class="publication-item">
+        <a href="https://zhuanlan.zhihu.com/p/681075174" target="_blank">
+          Stereo Perception Tech Share
+        </a>
+        <div class="tags">
+          <span class="tag">2022-2023</span>
+          <span class="tag">Stereo Vision</span>
+        </div>
+      </div>
+
+      <div class="publication-item">
+        <a href="https://zhuanlan.zhihu.com/p/684231812" target="_blank">
+          BEV Occupancy 0-1 Share
+        </a>
+        <div class="tags">
+          <span class="tag">2023-2024</span>
+          <span class="tag">Occupancy</span>
+        </div>
+      </div>
+
+      <div class="publication-item">
+        <a href="https://qihao-huang.github.io/manuscripts/long_range_bench.html" target="_blank">
+          2000m Long Range Benchmark
+        </a>
+        <div class="tags">
+          <span class="tag">2023</span>
+          <span class="tag">Benchmark</span>
+        </div>
+      </div>
+
+      <div class="publication-item">
+        <div>
+          <a href="https://www.tandfonline.com/eprint/U5UZ3INYJBVN8RMISM8K/full?target=10.1080/10447318.2025.2505775" target="_blank">
+            The Effect of ADAS on Truck Drivers' Defensive Driving Behaviors
+          </a> / 
+          <a href="https://tjxb.ijournals.cn/jtuns/article/abstract/202406003" target="_blank">(CN)</a>
+        </div>
+        <div class="tags">
+          <span class="tag">IJHCI 2025</span>
+          <span class="tag">ADAS</span>
+        </div>
+      </div>
+
+      <div class="publication-item">
+        <div>
+          <a href="https://qihao-huang.github.io/manuscripts/DO3D_2021.pdf" target="_blank">
+            Self-supervised Learning of Decomposed Object-wise 3D Motion and Depth from Monocular Videos
+          </a> / 
+          <a href="https://arxiv.org/pdf/2403.05895.pdf" target="_blank">arXiv</a> / 
+          <a href="https://patents.google.com/patent/CN114612510A" target="_blank">Patent</a>
+        </div>
+        <div class="tags">
+          <span class="tag">2021</span>
+          <span class="tag">Self-supervised Learning</span>
+        </div>
+      </div>
+
+      <div class="publication-item">
+        <a href="https://qihao-huang.github.io/manuscripts/building_a_smarter_uni.pdf" target="_blank">
+          EN-CN Translation: Building a Smarter University
+        </a>
+        <div class="tags">
+          <span class="tag">2018</span>
+          <span class="tag">Translation</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Career Journey -->
+    <section id="moments" class="section">
+      <h2>🌟 Life Journey</h2>
+      
+      <div class="publication-item">
+        <a href="https://qihao-huang.github.io/manuscripts/career_moments.html" target="_blank">
+          Career Moments at PlusAI, Apple, ByteDance, XYZ Robotics
+        </a>
+      </div>
+
+      <div class="publication-item">
+        <a href="https://qihao-huang.github.io/manuscripts/ZJU.html" target="_blank">
+          UG Courses at Math College and Chu Kochen Honors College of Zhejiang University
+        </a>
+      </div>
+
+      <div class="publication-item">
+        <div>Love swimming 🏊 and badminton 🏸</div>
+      </div>
+    </section>
   </div>
-  </div>
+
+  <script>
+    // Smooth scroll for navigation links
+    document.querySelectorAll('nav a').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Add animation on scroll
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.section, .hero').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(el);
+    });
+  </script>
 </body>
 
 </html>
