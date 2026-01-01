@@ -3,7 +3,9 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="shortcut icon" href="favicon.ico">
   <meta name="keywords" content="Qihao Huang, Autonomous Driving, Computer Vision, Machine Learning">
   <meta name="description" content="Qihao Huang - Building autonomy products from scratch">
@@ -71,10 +73,14 @@
       color: var(--text-dark);
       text-decoration: none;
       font-weight: 500;
-      padding: 0.5rem 1rem;
+      padding: 0.75rem 1.5rem;
       border-radius: 8px;
       transition: all 0.3s ease;
       position: relative;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     nav a::after {
@@ -169,7 +175,7 @@
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.6rem 1.2rem;
+      padding: 0.75rem 1.5rem;
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: white;
       text-decoration: none;
@@ -177,6 +183,9 @@
       font-weight: 500;
       transition: all 0.3s ease;
       box-shadow: var(--shadow);
+      min-height: 44px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
     }
 
     .social-links a:hover {
@@ -248,6 +257,9 @@
       text-decoration: none;
       font-weight: 500;
       transition: color 0.3s ease;
+      -webkit-tap-highlight-color: rgba(37, 99, 235, 0.1);
+      display: inline-block;
+      padding: 0.2rem 0;
     }
 
     .publication-item a:hover {
@@ -280,41 +292,124 @@
 
     /* Responsive Design */
     @media (max-width: 768px) {
-      .hero {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-        padding: 2rem;
+      body {
+        font-size: 16px;
       }
 
-      .hero-content h1 {
-        font-size: 2rem;
-      }
-
-      .hero-content .subtitle {
-        font-size: 1.2rem;
+      nav {
+        padding: 0.5rem 0;
       }
 
       nav .nav-container {
-        flex-direction: column;
         gap: 0.5rem;
         padding: 0 1rem;
       }
 
-      .container {
-        padding: 0 1rem;
+      nav a {
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
       }
 
-      .section {
+      .container {
+        padding: 0 1rem;
+        margin: 1rem auto;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 2rem;
         padding: 1.5rem;
       }
 
+      .hero-content h1 {
+        font-size: 1.75rem;
+      }
+
+      .hero-content h1 span {
+        font-size: 0.65em !important;
+        display: block;
+        margin-left: 0 !important;
+        margin-top: 0.25rem;
+      }
+
+      .hero-content .subtitle {
+        font-size: 1.1rem;
+      }
+
+      .hero-content .tagline {
+        font-size: 1rem;
+      }
+
+      .hero-content .experience {
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+
+      .hero-image img {
+        max-width: 200px;
+      }
+
+      .section {
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .section h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .publication-item {
+        padding: 1rem;
+        font-size: 0.95rem;
+      }
+
       .social-links {
-        flex-direction: column;
+        gap: 0.75rem;
       }
 
       .social-links a {
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
         width: 100%;
         justify-content: center;
+      }
+
+      .tags {
+        gap: 0.4rem;
+      }
+
+      .tag {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.6rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero {
+        padding: 1.25rem;
+      }
+
+      .hero-content h1 {
+        font-size: 1.5rem;
+      }
+
+      .hero-content .subtitle {
+        font-size: 1rem;
+      }
+
+      .section {
+        padding: 1rem;
+        border-radius: 15px;
+      }
+
+      .section h2 {
+        font-size: 1.3rem;
+      }
+
+      nav a {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
       }
     }
 
