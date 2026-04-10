@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>具身智能数据采集：路线、方法与规模化思考</title>
+  <meta name="description" content="从预训练到后训练，全面梳理具身智能数据采集的核心路线、主流方法与 Scaling Law 的前沿探索。">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #3b82f6;
+      --accent-color: #60a5fa;
+      --text-dark: #1e293b;
+      --text-light: #64748b;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--text-dark);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+      line-height: 1.8;
+      overflow-x: hidden;
+    }
+
+    nav {
+      position: sticky; top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      z-index: 1000;
+      padding: 1rem 0;
+    }
+
+    nav .nav-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav a {
+      color: var(--text-dark);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    nav a:hover { color: var(--primary-color); background: var(--bg-light); }
+
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+
+    article {
+      background: var(--bg-white);
+      border-radius: 20px;
+      padding: 3rem;
+      box-shadow: var(--shadow-lg);
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .article-header {
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid var(--bg-light);
+    }
+
+    .article-header h1 {
+      font-size: 2rem;
+      line-height: 1.3;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    .article-meta {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin: 2.5rem 0 1rem;
+      color: var(--text-dark);
+      border-left: 4px solid var(--primary-color);
+      padding-left: 0.75rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      margin: 1.8rem 0 0.8rem;
+      color: var(--text-dark);
+    }
+
+    p { margin-bottom: 1rem; color: #334155; }
+
+    ul, ol {
+      margin: 0.5rem 0 1rem 1.5rem;
+      color: #334155;
+    }
+
+    li { margin-bottom: 0.4rem; }
+
+    strong { color: var(--text-dark); }
+
+    .highlight-box {
+      background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+      border-left: 4px solid var(--primary-color);
+      border-radius: 0 12px 12px 0;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .highlight-box p { margin-bottom: 0.5rem; }
+    .highlight-box p:last-child { margin-bottom: 0; }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .comparison-table th, .comparison-table td {
+      border: 1px solid #e2e8f0;
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+
+    .comparison-table th {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      font-weight: 600;
+    }
+
+    .comparison-table tr:nth-child(even) { background: var(--bg-light); }
+    .comparison-table tr:hover { background: #e0e7ff; }
+
+    .tag {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-right: 0.3rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .back-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+
+    @media (max-width: 768px) {
+      article { padding: 1.5rem; border-radius: 15px; }
+      .article-header h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.3rem; }
+      .container { padding: 0 1rem; margin: 1rem auto; }
+      .comparison-table { font-size: 0.85rem; }
+      .comparison-table th, .comparison-table td { padding: 0.5rem; }
+    }
+
+    html { scroll-behavior: smooth; }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <div class="nav-container">
+      <a href="../index.html">← 返回主页</a>
+      <a href="#top">回到顶部</a>
+    </div>
+  </nav>
+
+  <div class="container" id="top">
+    <article id="blog-content">
+      <div class="article-header">
+        <h1>具身智能数据采集：路线、方法与规模化思考</h1>
+        <div class="article-meta">
+          <span>📅 2026 年 3 月</span>
+          <span class="tag">具身智能</span>
+          <span class="tag">数据采集</span>
+          <span class="tag">VLA</span>
+          <span class="tag">Scaling Law</span>
+        </div>
+      </div>
+
+      <h2>一、为什么数据采集是具身智能的核心瓶颈？</h2>
+      <p>当前具身智能的模型架构已趋于收敛——无论是 Google、Physical Intelligence (PI)，还是国内一众创业公司，大多采用 <strong>VLA（Vision-Language-Action）</strong> 范式，强调视觉感知、语言推理与高频执行器控制的融合。模型结构上的差异越来越小，<strong>真正的竞争壁垒正在转向数据</strong>。</p>
+      <p>类比自动驾驶的发展路径：人形机器人像 Robotaxi，是"圣杯问题"；轮式底盘双臂物流像 Robotruck，商业效率高但上限有限；固定双臂像港口/园区场景，出效果快但天花板低。参考自动驾驶经验，最快能闭环的是"智能辅助"形态——关键在于数据能否规模化支撑模型迭代。</p>
+
+      <div class="highlight-box">
+        <p><strong>具身智能的 Scaling Law 三要素：</strong></p>
+        <p>🔹 <strong>数据缩放</strong>：RT-X 证明 10 万+ 轨迹可使跨任务成功率提升 30%+</p>
+        <p>🔹 <strong>模型缩放</strong>：RT-2-X 表明 55B &gt; 5B 参数量显著增强跨本体迁移与技能涌现</p>
+        <p>🔹 <strong>本体缩放</strong>：Open X-Embodiment 用 22 种机器人验证了跨本体泛化的显著提升</p>
+      </div>
+
+      <h2>二、训练阶段与数据需求</h2>
+      <p>借鉴大语言模型的训练范式，具身智能的模型训练同样分为三个阶段，每个阶段对数据的需求有本质区别：</p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr><th>阶段</th><th>核心目标</th><th>数据特征</th><th>典型方法</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>预训练</strong></td>
+            <td>通用能力底座（认知/推理）</td>
+            <td>海量、低成本、多模态</td>
+            <td>互联网视频、Next-frame Prediction、World Model</td>
+          </tr>
+          <tr>
+            <td><strong>中训练</strong></td>
+            <td>通用→专用的迁移桥梁</td>
+            <td>异构数据对齐、上规模</td>
+            <td>SFT、跨本体数据对齐</td>
+          </tr>
+          <tr>
+            <td><strong>后训练</strong></td>
+            <td>任务对齐、安全可靠</td>
+            <td>同构、高质量、闭环</td>
+            <td>同构 Finetune、RL、数据闭环</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p><strong>关键洞察</strong>：外骨骼采集的数据做到的是动作对齐，更适合<strong>中训练</strong>；预训练需要认知与推理能力，后训练需要精细的动作-场景对齐。不同采集方式本质上服务于不同的训练阶段。</p>
+
+      <h2>三、数据采集路线全景</h2>
+      <p>当前具身智能数据采集可分为四条主要路线，每条路线都有代表性团队在推进：</p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr><th>路线</th><th>代表团队</th><th>核心优势</th><th>主要挑战</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>遥操真机</strong></td>
+            <td>智元（AgiBot World 百万级数据集）</td>
+            <td>数据直接可用，动作高保真</td>
+            <td>成本高、规模受限</td>
+          </tr>
+          <tr>
+            <td><strong>仿真合成</strong></td>
+            <td>银河通用（GraspVLA，十亿级仿真数据）</td>
+            <td>规模大、成本可控</td>
+            <td>Sim2Real Gap</td>
+          </tr>
+          <tr>
+            <td><strong>人类视频</strong></td>
+            <td>它石智航（WIYH 数据集 10 万+视频）</td>
+            <td>数据源开放、场景丰富</td>
+            <td>缺力觉/触觉，迁移鸿沟大</td>
+          </tr>
+          <tr>
+            <td><strong>UMI 路线</strong></td>
+            <td>鹿明机器人（FastUMI Pro）</td>
+            <td>低成本、通用性强</td>
+            <td>仅限简单操作</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>四、主流采集方法详解</h2>
+
+      <h3>4.1 遥操作：主从机械臂（ALOHA）</h3>
+      <p>斯坦福 <strong>ALOHA</strong> 项目通过关节复制（Joint-copy）开创了低成本双臂遥操作范式。操作员通过额外机械臂控制目标机器人，实现高精度动作映射。</p>
+      <p>核心痛点：操作员"感受不到机器人的感受"——操作不直观，难以采集 in-hand manipulation 等精细操作数据。</p>
+
+      <h3>4.2 VR 遥操作</h3>
+      <p>通过 VR 头显进入机器人第一视角，操作逻辑简单、上手门槛低。Tesla Optimus 目前就采用 <strong>VR 遥操 + 动捕手套</strong>方案。</p>
+      <p>局限性在于：VR 依赖视觉追踪，手指遮挡时精度大幅下降；末端位姿需经逆运动学（IK）解算，可能出现"不跟手"问题。更关键的是——操作者看到的是相机画面而非自己的皮肤，缺少连续接触力与微小滑动信息，误差层层叠加后会破坏精细操作的连续性。</p>
+
+      <h3>4.3 动捕手套 + 第一视角视频</h3>
+      <p>以 <strong>DexCap</strong> 和 <strong>DexWild</strong> 为代表，优先保住穿戴自由度与采集便携性。DexCap 核心是动捕手套，配合手背 RealSense T265 做手腕六自由度跟踪，整条链路为：</p>
+      <p><em>人手动作 → 动捕手套 → Retargeting → 机器人动作空间 → 策略学习 → 在线纠偏</em></p>
+      <p>手套类型包括惯性（IMU）、光学（反光标记 + 红外相机）和光纤（布拉格光栅）三大类，各有适用场景。</p>
+
+      <h3>4.4 外骨骼采集</h3>
+      <p>外骨骼在动捕基础上进一步做加法，通过机械连杆耦合实现更高保真的动作映射。</p>
+      <p>代表方案包括灵巧手外骨骼（DexUMI、DexOP）和上下肢全身外骨骼（AirExo，卢策吾团队）。其中 DexUMI 存在视觉 Gap（相机看到数据手套而非机械手），DexOP 视觉 Gap 小但状态 Gap 较大。</p>
+
+      <h3>4.5 UMI：极简主义路线</h3>
+      <p>与外骨骼的"做加法"相反，UMI 是典型的<strong>"做减法"</strong>思路——手持夹爪 + GoPro 手腕相机，基于末端位姿控制 + 逆运动学，操作者只需给出末端轨迹。</p>
+      <ul>
+        <li><strong>优点</strong>：低成本、低门槛、数据可直接迁移到不同机械臂</li>
+        <li><strong>缺点</strong>：仅适合简单任务，夹爪做不了拧瓶盖、用筷子等灵巧操作</li>
+        <li><strong>演进</strong>：初代 UMI → Fast-UMI（引入触觉）→ DexUMI / ActiveUMI（多模态扩展）</li>
+      </ul>
+
+      <h3>4.6 第一视角人类视频（Ego-centric）</h3>
+      <p>采集者佩戴智能眼镜或头戴设备拍摄日常操作，无机器人参与，成本极低且易于大规模众包。</p>
+      <p>代表工作 <strong>EgoScale</strong> 已建成超 1300 小时有效数据，覆盖 240 个真实场景，验证出近乎完美的对数线性缩放规律（R²=0.998），使灵巧手性能较基线提升 54%。</p>
+      <p>但本质瓶颈在于<strong>人到机器人的迁移鸿沟</strong>：人体与机器人本体结构差异、缺失力/触觉反馈、动作执行性无法保证。人类视频并非机器人学习的起点，仅能在真实交互数据已足够丰富时作为增效叠加项。</p>
+
+      <h3>4.7 仿真数据（Sim2Real）</h3>
+      <p>银河通用基于十亿量级仿真数据发布了 <strong>GraspVLA</strong>，以及灵巧手多样抓取仿真数据集 <strong>DexonomySim</strong>，覆盖 GRASP taxonomy 中 31 种抓取类型，包含 9.5M 条有效抓取轨迹、10.7k 个物体。</p>
+      <p>仿真数据的核心优势是规模与效率，但 Sim2Real Gap 仍是主要挑战。</p>
+
+      <h2>五、数据金字塔与规模化思考</h2>
+      <p>具身智能的数据体系呈金字塔结构：</p>
+      <ul>
+        <li><strong>塔尖</strong>：高保真数据（力、位姿、触觉），采集成本高、速度慢，但对精细操作策略极其宝贵</li>
+        <li><strong>塔中</strong>：遥操/UMI/外骨骼采集的真实机器人数据</li>
+        <li><strong>塔底</strong>：互联网视频 + 合成数据，易于获取但与机器人执行空间之间存在巨大鸿沟</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p><strong>规模化的核心矛盾</strong>：200-500 万 clips 的数据量增长靠人力堆砌，这一点都不 scale。如果基础模型具备认知和推理能力，是否能实现 scale up 和 zero-shot？当模型从 2B 扩展到 7B、14B，需要 10 倍甚至 1000 倍的数据——还能靠标签体系吗？</p>
+      </div>
+
+      <p>京东宣布发动数十万人参与数据采集（包括超 10 万内部员工和最多 50 万外部人员），目标一年内积累 500 万小时人类真实场景视频数据，成为"人类历史上规模最大的数据采集行动"。这代表了当前行业对数据规模的极致追求。</p>
+
+      <h2>六、多阶段训练范式</h2>
+      <p>综合各路线的数据特性，业界逐渐收敛到<strong>多阶段训练范式</strong>：</p>
+      <ol>
+        <li><strong>Pre-train</strong>：从海量人类视频学习"世界常识+人类怎么做"，构建通用视觉动作基础模型。代表如字节 GR-2（3800 万互联网视频预训练）。</li>
+        <li><strong>Middle-train</strong>：在仿真/少量真机中对齐"机器人能怎么做"，蒸馏人类常识到机器人空间。</li>
+        <li><strong>Post-train</strong>：在真实机器人上精调，加入力觉、触觉、摩擦、惯性等真实物理交互数据，让动作稳定、安全、可复现。</li>
+      </ol>
+
+      <h2>七、总结与展望</h2>
+      <p>具身智能数据采集正处于<strong>"百家争鸣"</strong>阶段，各种路线并行发展，尚未收敛到统一范式。核心观点如下：</p>
+      <ul>
+        <li>不同采集方式服务于不同训练阶段：互联网视频 → 预训练，异构数据 → 中训练，同构真机 → 后训练</li>
+        <li>UMI 和遥操是当前最务实的方案，但未来瓶颈在灵巧手硬件与长程推理</li>
+        <li>外骨骼做到的是动作对齐，适合中训练，但尚未与辅助型外骨骼搭上线</li>
+        <li>人类视频是增效项而非起点，必须在真实交互数据充足时才能发挥价值</li>
+        <li>规模化不能只靠人力堆数据，需要模型本身具备认知与推理能力来实现真正的 scale</li>
+      </ul>
+      <p>未来的方向是：<strong>认知推理能力 + 物理交互数据 + 跨本体泛化</strong>，三者协同才能实现具身智能的 Scaling Law。</p>
+
+      <a href="../index.html" class="back-link">← 返回主页</a>
+    </article>
+  </div>
+</body>
+
+</html>

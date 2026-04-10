@@ -66,7 +66,8 @@
       padding: 0 2rem;
       display: flex;
       justify-content: center;
-      gap: 2rem;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
     }
 
     nav a {
@@ -102,6 +103,74 @@
     nav a:hover {
       color: var(--primary-color);
       background: var(--bg-light);
+    }
+
+    nav a.is-active {
+      color: var(--primary-color);
+      background: var(--bg-light);
+    }
+
+    nav a.is-active::after {
+      width: 80%;
+    }
+
+    /* Single-panel view: only one main block visible at a time */
+    .view-panel {
+      display: none;
+    }
+
+    .view-panel.is-active {
+      display: block;
+      animation: fadeIn 0.45s ease;
+    }
+
+    .view-panel.is-active.hero {
+      display: grid;
+    }
+
+    /* Blog panel: long-form text (edit article only inside #blog .blog-article) */
+    .blog-article {
+      max-width: 42rem;
+      margin: 0 auto;
+      text-align: left;
+      font-size: 1.05rem;
+      line-height: 1.75;
+    }
+
+    .blog-article .blog-entry-title {
+      font-size: 1.65rem;
+      font-weight: 700;
+      line-height: 1.35;
+      margin: 0 0 0.5rem;
+      color: var(--text-dark);
+    }
+
+    .blog-article .blog-meta {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      margin-bottom: 1.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .blog-article .blog-lead {
+      margin: 0 0 1.75rem;
+    }
+
+    .blog-article h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin: 2rem 0 0.75rem;
+      color: var(--text-dark);
+    }
+
+    .blog-article p {
+      margin: 0 0 1rem;
+      color: var(--text-dark);
+    }
+
+    .blog-article .blog-closing {
+      margin-top: 1.75rem;
     }
 
     /* Container */
@@ -440,16 +509,17 @@
   <!-- Navigation -->
   <nav>
     <div class="nav-container">
-      <a href="#about">About</a>
-      <a href="#knowledge">Research</a>
-      <a href="#moments">Journey</a>
+      <a href="#about" data-panel="about" class="is-active" aria-current="page">About</a>
+      <a href="#knowledge" data-panel="research">Research</a>
+      <a href="#blog" data-panel="blog">Blog</a>
+      <a href="#moments" data-panel="journey">Journey</a>
     </div>
   </nav>
 
   <!-- Main Container -->
   <div class="container">
     <!-- Hero Section -->
-    <section id="about" class="hero">
+    <section id="about" class="hero view-panel is-active" data-panel="about">
       <div class="hero-content">
         <h1>Qihao Huang<span style="font-size: 0.7em; margin-left: 0.5rem;">黄奇浩</span></h1>
         <div class="subtitle"> 10x Engineer</div>
@@ -479,7 +549,7 @@
     </section>
 
     <!-- Research & Publications -->
-    <section id="knowledge" class="section">
+    <section id="knowledge" class="section view-panel" data-panel="research">
       <h2>🔬 Research & Innovation</h2>
       
       <div class="publication-item">
@@ -594,10 +664,58 @@
       </div> -->
     </section>
 
+    <!-- Blog：在 manuscripts/ 里新增文章后，只需往 #blog-list 追加一个 .publication-item -->
+    <section id="blog" class="section view-panel" data-panel="blog" lang="zh-CN">
+      <h2>📝 Blog</h2>
+
+      <!-- 列表视图 -->
+      <div id="blog-list">
+        <div class="publication-item">
+          <a href="manuscripts/embodied-intelligence-data-collection.html" class="blog-post-link"
+             data-blog-src="manuscripts/embodied-intelligence-data-collection.html">
+            具身智能数据采集：路线、方法与规模化思考
+          </a>
+          <div class="publication-meta">2026-03 · 从预训练到后训练，全面梳理具身智能数据采集的核心路线、主流方法与 Scaling Law 的前沿探索</div>
+          <div class="tags">
+            <span class="tag">具身智能</span>
+            <span class="tag">数据采集</span>
+            <span class="tag">VLA</span>
+            <span class="tag">Scaling Law</span>
+          </div>
+        </div>
+
+        <div class="publication-item">
+          <a href="manuscripts/multimodal-sparse-3d-detection.html" class="blog-post-link"
+             data-blog-src="manuscripts/multimodal-sparse-3d-detection.html">
+            多模态稀疏 3D 检测：工程架构深度解析
+          </a>
+          <div class="publication-meta">2026-04-10 · LiDAR 稀疏处理管线、多模态 BEV 融合、Sparse Query 检测头与 Recurrent Temporal 架构的设计思考</div>
+          <div class="tags">
+            <span class="tag">技术博客</span>
+            <span class="tag">3D Detection</span>
+            <span class="tag">BEV</span>
+          </div>
+        </div>
+
+        <div class="publication-item">
+          <a href="manuscripts/autonomy_second_half_20260215.html" class="blog-post-link"
+             data-blog-src="manuscripts/autonomy_second_half_20260215.html">
+            半年热身与智能化下半场
+          </a>
+          <div class="publication-meta">2026-02-15</div>
+          <div class="tags">
+            <span class="tag">随笔</span>
+            <span class="tag">创业与自主</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
     <!-- Career Journey -->
-    <section id="moments" class="section">
+    <section id="moments" class="section view-panel" data-panel="journey">
       <h2>🌟 Life Journey</h2>
-      
+
       <div class="publication-item">
         <a href="https://qihao-huang.github.io/manuscripts/career_moments.html" target="_blank">
           Career Moments at PlusAI, Apple, ByteDance, XYZ Robotics
@@ -617,37 +735,75 @@
   </div>
 
   <script>
-    // Smooth scroll for navigation links
-    document.querySelectorAll('nav a').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
+    (function () {
+      const navLinks = document.querySelectorAll('nav a[data-panel]');
+      const panels = document.querySelectorAll('.view-panel[data-panel]');
+
+      const hashToPanel = {
+        about: 'about',
+        knowledge: 'research',
+        moments: 'journey',
+        blog: 'blog'
+      };
+
+      const panelToHash = {
+        about: 'about',
+        research: 'knowledge',
+        journey: 'moments',
+        blog: 'blog'
+      };
+
+      function syncHash(panelId) {
+        var want = panelId === 'about' ? '' : '#' + (panelToHash[panelId] || 'about');
+        var cur = location.hash || '';
+        if (want === cur) return;
+        var path = location.pathname + location.search;
+        history.replaceState(null, '', want ? want : path);
+      }
+
+      function showPanel(panelId) {
+        panels.forEach(function (el) {
+          var on = el.getAttribute('data-panel') === panelId;
+          el.classList.toggle('is-active', on);
+        });
+        navLinks.forEach(function (a) {
+          var on = a.getAttribute('data-panel') === panelId;
+          a.classList.toggle('is-active', on);
+          if (on) {
+            a.setAttribute('aria-current', 'page');
+          } else {
+            a.removeAttribute('aria-current');
+          }
+        });
+        window.scrollTo(0, 0);
+        syncHash(panelId);
+      }
+
+      function panelFromHash() {
+        var key = (location.hash || '#about').replace(/^#/, '');
+        return hashToPanel[key] || 'about';
+      }
+
+      navLinks.forEach(function (anchor) {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          showPanel(anchor.getAttribute('data-panel'));
+        });
+      });
+
+      window.addEventListener('hashchange', function () {
+        showPanel(panelFromHash());
+      });
+
+      showPanel(panelFromHash());
+    })();
+
+    // Blog links: navigate directly to the manuscript page
+    document.querySelectorAll('.blog-post-link').forEach(function (a) {
+      a.addEventListener('click', function (e) {
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        location.href = a.getAttribute('href');
       });
-    });
-
-    // Add animation on scroll
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('.section, .hero').forEach(el => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(20px)';
-      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-      observer.observe(el);
     });
   </script>
 </body>
