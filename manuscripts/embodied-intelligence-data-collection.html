@@ -7,218 +7,46 @@
   <title>具身智能数据采集：路线、方法与规模化思考</title>
   <meta name="description" content="从预训练到后训练，全面梳理具身智能数据采集的核心路线、主流方法与 Scaling Law 的前沿探索。">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --primary-color: #2563eb;
-      --secondary-color: #3b82f6;
-      --accent-color: #60a5fa;
-      --text-dark: #1e293b;
-      --text-light: #64748b;
-      --bg-light: #f8fafc;
-      --bg-white: #ffffff;
-      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-    }
-
+    :root { --text: #1e293b; --muted: #64748b; --accent: #2563eb; --bg: #ffffff; --line: #e2e8f0; }
+    * { box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      color: var(--text-dark);
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      background-attachment: fixed;
-      line-height: 1.8;
-      overflow-x: hidden;
+      margin: 0;
+      padding: 2rem 1.25rem 3rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+                   "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: var(--text);
+      background: var(--bg);
+      max-width: 42rem;
+      margin-left: auto;
+      margin-right: auto;
     }
-
-    nav {
-      position: sticky; top: 0;
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
-      z-index: 1000;
-      padding: 1rem 0;
-    }
-
-    nav .nav-container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    nav a {
-      color: var(--text-dark);
-      text-decoration: none;
-      font-weight: 500;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-    }
-
-    nav a:hover { color: var(--primary-color); background: var(--bg-light); }
-
-    .container {
-      max-width: 900px;
-      margin: 2rem auto;
-      padding: 0 2rem;
-    }
-
-    article {
-      background: var(--bg-white);
-      border-radius: 20px;
-      padding: 3rem;
-      box-shadow: var(--shadow-lg);
-      animation: fadeIn 0.6s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .article-header {
-      margin-bottom: 2.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 2px solid var(--bg-light);
-    }
-
-    .article-header h1 {
-      font-size: 2rem;
-      line-height: 1.3;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 1rem;
-    }
-
-    .article-meta {
-      color: var(--text-light);
-      font-size: 0.9rem;
-      display: flex;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    h2 {
-      font-size: 1.5rem;
-      margin: 2.5rem 0 1rem;
-      color: var(--text-dark);
-      border-left: 4px solid var(--primary-color);
-      padding-left: 0.75rem;
-    }
-
-    h3 {
-      font-size: 1.2rem;
-      margin: 1.8rem 0 0.8rem;
-      color: var(--text-dark);
-    }
-
-    p { margin-bottom: 1rem; color: #334155; }
-
-    ul, ol {
-      margin: 0.5rem 0 1rem 1.5rem;
-      color: #334155;
-    }
-
-    li { margin-bottom: 0.4rem; }
-
-    strong { color: var(--text-dark); }
-
-    .highlight-box {
-      background: linear-gradient(135deg, #eff6ff, #f0f9ff);
-      border-left: 4px solid var(--primary-color);
-      border-radius: 0 12px 12px 0;
-      padding: 1.2rem 1.5rem;
-      margin: 1.5rem 0;
-    }
-
-    .highlight-box p { margin-bottom: 0.5rem; }
+    h1 { font-size: 1.65rem; font-weight: 700; line-height: 1.35; margin: 0 0 0.4rem; }
+    h2 { font-size: 1.12rem; font-weight: 600; margin: 2rem 0 0.65rem; }
+    h3 { font-size: 1.02rem; font-weight: 600; margin: 1.35rem 0 0.5rem; }
+    p  { margin: 0 0 1rem; }
+    ul, ol { margin: 0 0 1rem 1.25rem; padding: 0; }
+    li { margin-bottom: 0.35rem; }
+    .meta { color: var(--muted); font-size: 0.95rem; margin-bottom: 1.75rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+    .meta a { color: var(--accent); text-decoration: none; }
+    .meta a:hover { text-decoration: underline; }
+    .article-end { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.95rem; }
+    .article-end a { color: var(--accent); text-decoration: none; }
+    .article-end a:hover { text-decoration: underline; }
+    .highlight-box { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid var(--accent); }
+    .highlight-box p { margin: 0 0 0.5rem; }
     .highlight-box p:last-child { margin-bottom: 0; }
-
-    .comparison-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0 1.5rem;
-      font-size: 0.95rem;
-    }
-
-    .comparison-table th, .comparison-table td {
-      border: 1px solid #e2e8f0;
-      padding: 0.75rem 1rem;
-      text-align: left;
-    }
-
-    .comparison-table th {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-      font-weight: 600;
-    }
-
-    .comparison-table tr:nth-child(even) { background: var(--bg-light); }
-    .comparison-table tr:hover { background: #e0e7ff; }
-
-    .tag {
-      display: inline-block;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-      padding: 0.2rem 0.6rem;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      margin-right: 0.3rem;
-    }
-
-    .back-link {
-      display: inline-block;
-      margin-top: 2rem;
-      padding: 0.75rem 1.5rem;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-      text-decoration: none;
-      border-radius: 10px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      box-shadow: var(--shadow);
-    }
-
-    .back-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-
-    @media (max-width: 768px) {
-      article { padding: 1.5rem; border-radius: 15px; }
-      .article-header h1 { font-size: 1.5rem; }
-      h2 { font-size: 1.3rem; }
-      .container { padding: 0 1rem; margin: 1rem auto; }
-      .comparison-table { font-size: 0.85rem; }
-      .comparison-table th, .comparison-table td { padding: 0.5rem; }
-    }
-
-    html { scroll-behavior: smooth; }
+    .comparison-table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.25rem; font-size: 0.95rem; }
+    .comparison-table th, .comparison-table td { border: 1px solid var(--line); padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+    .comparison-table th { background: #f8fafc; font-weight: 600; }
   </style>
 </head>
 
 <body>
-  <nav>
-    <div class="nav-container">
-      <a href="../index.html">← 返回主页</a>
-      <a href="#top">回到顶部</a>
-    </div>
-  </nav>
-
-  <div class="container" id="top">
-    <article id="blog-content">
-      <div class="article-header">
-        <h1>具身智能数据采集：路线、方法与规模化思考</h1>
-        <div class="article-meta">
-          <span>📅 2026 年 3 月</span>
-          <span class="tag">具身智能</span>
-          <span class="tag">数据采集</span>
-          <span class="tag">VLA</span>
-          <span class="tag">Scaling Law</span>
-        </div>
-      </div>
+  <article id="blog-content">
+    <h1>具身智能数据采集：路线、方法与规模化思考</h1>
+    <p class="meta">2026 年 3 月 · 具身智能 · 数据采集 · VLA · Scaling Law · <a href="../index.html#blog">返回首页</a></p>
 
       <h2>一、为什么数据采集是具身智能的核心瓶颈？</h2>
       <p>当前具身智能的模型架构已趋于收敛——无论是 Google、Physical Intelligence (PI)，还是国内一众创业公司，大多采用 <strong>VLA（Vision-Language-Action）</strong> 范式，强调视觉感知、语言推理与高频执行器控制的融合。模型结构上的差异越来越小，<strong>真正的竞争壁垒正在转向数据</strong>。</p>
@@ -366,9 +194,8 @@
       </ul>
       <p>未来的方向是：<strong>认知推理能力 + 物理交互数据 + 跨本体泛化</strong>，三者协同才能实现具身智能的 Scaling Law。</p>
 
-      <a href="../index.html" class="back-link">← 返回主页</a>
-    </article>
-  </div>
+    <p class="article-end"><a href="../index.html#blog">返回首页</a></p>
+  </article>
 </body>
 
 </html>
