@@ -173,6 +173,120 @@
       margin-top: 1.75rem;
     }
 
+    /* Markdown 正文（由 manuscripts/*.md 渲染） */
+    .blog-md-body ul,
+    .blog-md-body ol {
+      margin: 0 0 1rem 1.25rem;
+      padding: 0;
+    }
+
+    .blog-md-body li {
+      margin-bottom: 0.35rem;
+    }
+
+    .blog-md-body strong {
+      font-weight: 600;
+    }
+
+    .blog-md-body a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    .blog-md-body a:hover {
+      text-decoration: underline;
+    }
+
+    .blog-md-body blockquote {
+      margin: 0 0 1rem;
+      padding-left: 1rem;
+      border-left: 3px solid var(--accent-color);
+      color: var(--text-light);
+    }
+
+    .blog-md-body code {
+      font-size: 0.9em;
+      background: var(--bg-light);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+    }
+
+    .blog-md-body pre {
+      margin: 0 0 1rem;
+      padding: 1rem;
+      background: var(--bg-light);
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.95em;
+    }
+
+    .blog-md-body pre code {
+      padding: 0;
+      background: none;
+    }
+
+    .blog-md-body h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 2rem 0 0.75rem;
+      color: var(--text-dark);
+    }
+
+    #blog-list.is-hidden {
+      display: none;
+    }
+
+    .blog-reader {
+      display: none;
+      max-width: 42rem;
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    #blog.blog-reading .blog-reader {
+      display: block;
+    }
+
+    .blog-reader-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-bottom: 1.25rem;
+      padding: 0.5rem 0.85rem;
+      font: inherit;
+      color: var(--primary-color);
+      background: var(--bg-light);
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .blog-reader-back:hover {
+      background: #e8eef9;
+    }
+
+    .blog-reader-title {
+      font-size: 1.65rem;
+      font-weight: 700;
+      line-height: 1.35;
+      margin: 0 0 0.5rem;
+      color: var(--text-dark);
+    }
+
+    .blog-reader-meta {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      margin-bottom: 1.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .blog-reader-status {
+      color: var(--text-light);
+      font-size: 1rem;
+    }
+
     /* Container */
     .container {
       max-width: 1200px;
@@ -664,12 +778,23 @@
       </div> -->
     </section>
 
-    <!-- Blog：在 manuscripts/ 里新增文章后，只需往 #blog-list 追加一个 .publication-item -->
+    <!-- Blog：长文可放在 manuscripts/*.md，列表里用 data-blog-md 指向文件，无需再建 html -->
     <section id="blog" class="section view-panel" data-panel="blog" lang="zh-CN">
       <h2>📝 Blog</h2>
 
       <!-- 列表视图 -->
       <div id="blog-list">
+        <div class="publication-item">
+          <a href="#blog" class="blog-post-link" data-blog-md="manuscripts/team_hire.md" data-blog-meta="2026-04 · 招聘与面试">
+            面试、组建早期团队的一些实践、思考
+          </a>
+          <div class="publication-meta">2026-04 · 早期团队组建与面试中的匹配、流程与共同愿景</div>
+          <div class="tags">
+            <span class="tag">随笔</span>
+            <span class="tag">招聘</span>
+          </div>
+        </div>
+
         <div class="publication-item">
           <a href="manuscripts/embodied-intelligence-data-collection.html" class="blog-post-link"
              data-blog-src="manuscripts/embodied-intelligence-data-collection.html">
@@ -708,6 +833,15 @@
         </div>
       </div>
 
+      <!-- Markdown 阅读视图（由 data-blog-md 打开） -->
+      <div id="blog-reader" class="blog-reader" hidden>
+        <button type="button" class="blog-reader-back" id="blog-reader-back" aria-label="返回博客列表">← 返回列表</button>
+        <h3 class="blog-reader-title" id="blog-reader-title"></h3>
+        <p class="blog-reader-meta" id="blog-reader-meta"></p>
+        <div id="blog-reader-status" class="blog-reader-status" hidden></div>
+        <article id="blog-reader-body" class="blog-article blog-md-body" aria-live="polite"></article>
+      </div>
+
     </section>
 
     <!-- Career Journey -->
@@ -732,10 +866,116 @@
     </section>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
   <script>
     (function () {
       const navLinks = document.querySelectorAll('nav a[data-panel]');
       const panels = document.querySelectorAll('.view-panel[data-panel]');
+      const blogSection = document.getElementById('blog');
+      const blogListEl = document.getElementById('blog-list');
+      const blogReaderEl = document.getElementById('blog-reader');
+      const blogReaderTitle = document.getElementById('blog-reader-title');
+      const blogReaderMeta = document.getElementById('blog-reader-meta');
+      const blogReaderBody = document.getElementById('blog-reader-body');
+      const blogReaderStatus = document.getElementById('blog-reader-status');
+      const blogReaderBack = document.getElementById('blog-reader-back');
+
+      function resetBlogReader() {
+        if (!blogSection) return;
+        blogSection.classList.remove('blog-reading');
+        if (blogListEl) blogListEl.classList.remove('is-hidden');
+        if (blogReaderEl) blogReaderEl.hidden = true;
+        if (blogReaderBody) blogReaderBody.innerHTML = '';
+        if (blogReaderTitle) blogReaderTitle.textContent = '';
+        if (blogReaderMeta) blogReaderMeta.textContent = '';
+        if (blogReaderStatus) {
+          blogReaderStatus.hidden = true;
+          blogReaderStatus.textContent = '';
+        }
+      }
+
+      function stripLeadingH1(md) {
+        var text = md.replace(/^\uFEFF/, '');
+        var lines = text.split(/\r?\n/);
+        var i = 0;
+        while (i < lines.length && lines[i].trim() === '') i++;
+        var m = lines[i] && lines[i].match(/^#\s+(.+)$/);
+        if (!m) return { title: '', body: text };
+        var title = m[1].trim();
+        i++;
+        while (i < lines.length && lines[i].trim() === '') i++;
+        return { title: title, body: lines.slice(i).join('\n') };
+      }
+
+      /** 相对路径相对当前页目录解析，兼容 /index.html 与子路径部署 */
+      function resolveMdUrl(rel) {
+        if (/^https?:\/\//i.test(rel)) return rel;
+        var path = location.pathname || '/';
+        var dir = path.endsWith('/') ? path : path.replace(/[^/]*$/, '');
+        return new URL(rel, location.origin + dir).href;
+      }
+
+      function openBlogMd(src, metaLine) {
+        if (!blogSection || !blogReaderBody) return;
+        blogSection.classList.add('blog-reading');
+        if (blogListEl) blogListEl.classList.add('is-hidden');
+        if (blogReaderEl) blogReaderEl.hidden = false;
+        if (blogReaderTitle) blogReaderTitle.textContent = '';
+        if (blogReaderMeta) blogReaderMeta.textContent = metaLine || '';
+        blogReaderBody.innerHTML = '';
+        if (blogReaderStatus) {
+          blogReaderStatus.hidden = false;
+          blogReaderStatus.textContent = '加载中…';
+        }
+        window.scrollTo(0, 0);
+
+        if (location.protocol === 'file:') {
+          if (blogReaderStatus) {
+            blogReaderStatus.hidden = false;
+            blogReaderStatus.textContent =
+              '无法用 file:// 直接打开：请在仓库根目录执行 python3 -m http.server，用 http://localhost:8000 预览；线上需已 git push manuscripts 下的 .md 文件。';
+          }
+          return;
+        }
+
+        if (typeof marked === 'undefined') {
+          if (blogReaderStatus) {
+            blogReaderStatus.hidden = false;
+            blogReaderStatus.textContent = 'Markdown 解析库加载失败，请检查网络或刷新页面。';
+          }
+          return;
+        }
+
+        var url = resolveMdUrl(src);
+        fetch(url, { cache: 'no-cache' })
+          .then(function (r) {
+            if (!r.ok) throw new Error(String(r.status));
+            return r.text();
+          })
+          .then(function (raw) {
+            var parsed = stripLeadingH1(raw);
+            if (blogReaderTitle && parsed.title) blogReaderTitle.textContent = parsed.title;
+            marked.setOptions({ gfm: true, breaks: false });
+            blogReaderBody.innerHTML = marked.parse(parsed.body);
+            if (blogReaderStatus) blogReaderStatus.hidden = true;
+          })
+          .catch(function (err) {
+            if (blogReaderStatus) {
+              blogReaderStatus.hidden = false;
+              var hint = err && err.message === '404'
+                ? '（常见原因：该 .md 尚未提交并 push 到 GitHub，或路径写错。）'
+                : '';
+              blogReaderStatus.textContent = '加载失败（HTTP ' + (err && err.message) + '）。' + hint;
+            }
+            blogReaderBody.innerHTML = '';
+          });
+      }
+
+      if (blogReaderBack) {
+        blogReaderBack.addEventListener('click', function () {
+          resetBlogReader();
+        });
+      }
 
       const hashToPanel = {
         about: 'about',
@@ -760,6 +1000,7 @@
       }
 
       function showPanel(panelId) {
+        if (panelId !== 'blog') resetBlogReader();
         panels.forEach(function (el) {
           var on = el.getAttribute('data-panel') === panelId;
           el.classList.toggle('is-active', on);
@@ -794,15 +1035,23 @@
       });
 
       showPanel(panelFromHash());
-    })();
 
-    // Blog links: navigate directly to the manuscript page
-    document.querySelectorAll('.blog-post-link').forEach(function (a) {
-      a.addEventListener('click', function (e) {
-        e.preventDefault();
-        location.href = a.getAttribute('href');
+      // Blog：data-blog-md 在站内渲染 Markdown；其余仍跳转独立 html
+      document.querySelectorAll('.blog-post-link').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          var md = a.getAttribute('data-blog-md');
+          if (md) {
+            e.preventDefault();
+            showPanel('blog');
+            var meta = a.getAttribute('data-blog-meta') || '';
+            openBlogMd(md, meta);
+            return;
+          }
+          e.preventDefault();
+          location.href = a.getAttribute('href');
+        });
       });
-    });
+    })();
   </script>
 </body>
 
