@@ -75,6 +75,38 @@ def sanity_check_html(max_year: int = 2026) -> tuple[int, list[int]]:
     return len(years), bad
 
 
+READ_THRESHOLD = 120
+READ_WINDOW = 30 * 24 * 3600
+READ_WEEK = 7 * 24 * 3600
+
+
+def reading_stats() -> dict[str, int]:
+    """统计近 7/30 天「已阅读」论文（mtime 明显晚于 birthtime）。"""
+    import time
+
+    now = time.time()
+    week = month = 0
+    for lib_path in LIBRARIES.values():
+        if not lib_path.exists():
+            continue
+        for pdf in lib_path.rglob("*.pdf"):
+            if "/_excluded/" in str(pdf) or "\\_excluded\\" in str(pdf):
+                continue
+            try:
+                stat = pdf.stat()
+            except OSError:
+                continue
+            mt = int(stat.st_mtime)
+            bt = int(getattr(stat, "st_birthtime", stat.st_ctime))
+            if mt <= bt + READ_THRESHOLD:
+                continue
+            if mt >= now - READ_WINDOW:
+                month += 1
+                if mt >= now - READ_WEEK:
+                    week += 1
+    return {"week": week, "month": month}
+
+
 def main() -> int:
     if len(sys.argv) > 1 and sys.argv[1] == "--detect-only":
         stats = detect_changes()
@@ -89,10 +121,17 @@ def main() -> int:
         if bad:
             print(f"FAIL: {len(bad)} papers with pub_year > 2026: {bad[:10]}", file=sys.stderr)
             return 1
+        rs = reading_stats()
         print(f"OK: {count} pub_year entries checked")
+        print(f"READING_7D={rs['week']} READING_30D={rs['month']}")
         return 0
 
-    print("Usage: sync_papers.py --detect-only | --sanity-check", file=sys.stderr)
+    if len(sys.argv) > 1 and sys.argv[1] == "--reading-stats":
+        rs = reading_stats()
+        print(f"READING_7D={rs['week']} READING_30D={rs['month']}", flush=True)
+        return 0
+
+    print("Usage: sync_papers.py --detect-only | --sanity-check | --reading-stats", file=sys.stderr)
     return 2
 
 

@@ -6,7 +6,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>论文标签库 — __TOTAL__ 篇</title>
+<title>qihao's 个人论文阅读备忘录 — __TOTAL__ 篇</title>
 <script>
 (function(){
   var m = localStorage.getItem('papers-theme-mode') || 'system';
@@ -94,12 +94,15 @@ a{color:var(--accent)}
 .chart-area{padding:16px 20px;flex-shrink:0;border-bottom:1px solid var(--border);overflow-x:auto}
 .chart-area svg{display:block}
 /* Paper list */
-.paper-list{flex:1;overflow-y:auto;padding:12px 16px}
+.paper-list{flex:1;overflow-y:auto;padding:12px 16px;min-height:0}
+.paper-list.virtual-scroll-host{position:relative}
+.virtual-scroll-spacer{width:100%;pointer-events:none}
+.virtual-scroll-viewport{position:absolute;left:0;right:0;top:0;will-change:transform}
 .paper-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;transition:border-color .15s}
 .paper-card:hover{border-color:var(--accent)}
 .paper-title{font-size:14px;font-weight:600;line-height:1.45;margin-bottom:6px}
 .paper-meta{font-size:11px;color:var(--muted);margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap}
-.paper-summary{font-size:13px;color:var(--summary);line-height:1.55;margin-bottom:8px;font-style:normal}
+.paper-summary{font-size:13px;color:var(--summary);line-height:1.65;margin-bottom:8px;font-style:normal}
 .paper-tags{display:flex;flex-wrap:wrap;gap:4px}
 .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;cursor:pointer;transition:opacity .12s}
 .badge:hover{opacity:.8}
@@ -131,14 +134,35 @@ a{color:var(--accent)}
 /* Timeline */
 #timeline-wrap{padding:16px 20px;overflow:auto;flex:1}
 .highlight{background:rgba(77,171,247,.25);border-radius:2px}
+.read-tag{font-size:10px;color:var(--accent)}
+.alt-copies{font-size:10px;color:var(--muted);cursor:help}
+.badge.fail{background:rgba(255,107,107,.15);color:var(--arxiv)}
+.badge.fail-warn{background:rgba(255,146,43,.15);color:var(--method)}
+.unparsed-path{font-size:11px;color:var(--muted);word-break:break-all;margin-top:4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.unparsed-stem{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:4px}
+/* Roadmap */
+#roadmap-wrap{padding:16px 20px;overflow-y:auto;flex:1}
+.roadmap-intro{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:16px;max-width:720px}
+.roadmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;max-width:1100px}
+.roadmap-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;transition:border-color .15s}
+.roadmap-card:hover{border-color:var(--accent)}
+.roadmap-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.roadmap-card-head h3{font-size:14px;font-weight:600;line-height:1.4;flex:1}
+.roadmap-status{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.roadmap-status.planned{background:rgba(139,156,179,.15);color:var(--muted)}
+.roadmap-status.data-ready{background:rgba(77,171,247,.15);color:var(--accent)}
+.roadmap-status.in-progress{background:rgba(255,146,43,.15);color:var(--method)}
+.roadmap-status.backend{background:rgba(81,207,102,.15);color:var(--topic)}
+.roadmap-desc{font-size:12px;color:var(--muted);line-height:1.65}
+.roadmap-foot{margin-top:20px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);max-width:720px;line-height:1.6}
 </style>
 </head>
 <body>
 
 <header class="header">
-  <h1>🏷️ <span>论文标签库</span></h1>
+  <h1>🏷️ <span>qihao's 个人论文阅读备忘录</span></h1>
   <div class="search-wrap">
-    <input id="search" type="text" placeholder="搜索标题、摘要…">
+    <input id="search" type="text" placeholder="搜索标题、作者、摘要…">
   </div>
   <div class="stats">
     <div class="theme-switch" id="theme-switch" title="主题切换">
@@ -147,9 +171,7 @@ a{color:var(--accent)}
       <button class="theme-btn" data-theme-mode="dark" title="深色">☾</button>
     </div>
     <span>共 <span class="stat-val" id="stat-total">__TOTAL__</span> 篇</span>
-    <span>有日期 <span class="stat-val" id="stat-dates">__WITH_DATE__</span> (<span id="stat-coverage">__COVERAGE__</span>%)</span>
-    <span><span class="stat-val" id="stat-tags">__UNIQUE_TAGS__</span> 个标签</span>
-    <span>筛选 <span class="stat-val" id="stat-filtered">__TOTAL__</span> 篇</span>
+    <span>近30天阅读 <span class="stat-val" id="stat-recent-read">0</span> 篇</span>
   </div>
 </header>
 
@@ -178,14 +200,25 @@ a{color:var(--accent)}
   <!-- Main -->
   <div class="main">
     <div class="tabs">
-      <div class="tab active" data-tab="list">论文列表</div>
+      <div class="tab active" data-tab="reading" id="tab-reading-btn">最近阅读</div>
+      <div class="tab" data-tab="list">论文列表</div>
       <div class="tab" data-tab="chart">标签分布</div>
       <div class="tab" data-tab="heatmap">标签共现</div>
       <div class="tab" data-tab="timeline">标签×年份</div>
+      <div class="tab" data-tab="roadmap">路线图</div>
+      <div class="tab" data-tab="unparsed" id="tab-unparsed-btn">未解析 (<span id="tab-unparsed-cnt">__UNPARSED_CNT__</span>)</div>
+    </div>
+
+    <!-- Recent reading tab (default) -->
+    <div class="tab-content active" id="tab-reading">
+      <div class="list-header">
+        <span id="reading-info">最近 30 天阅读</span>
+      </div>
+      <div class="paper-list" id="reading-list"></div>
     </div>
 
     <!-- List tab -->
-    <div class="tab-content active" id="tab-list">
+    <div class="tab-content" id="tab-list">
       <div class="list-header">
         <span id="list-info">全部论文</span>
         <select class="sort-select" id="sort-select">
@@ -214,14 +247,104 @@ a{color:var(--accent)}
     <div class="tab-content" id="tab-timeline">
       <div id="timeline-wrap"></div>
     </div>
+
+    <!-- Roadmap tab -->
+    <div class="tab-content" id="tab-roadmap">
+      <div id="roadmap-wrap">
+        <p class="roadmap-intro">以下为论文标签库后续计划增加的功能。状态基于当前代码库：部分后端逻辑或数据已就绪，尚缺前端 Tab 或交互。</p>
+        <div class="roadmap-grid">
+          <div class="roadmap-card">
+            <div class="roadmap-card-head">
+              <h3>相似论文图谱</h3>
+              <span class="roadmap-status backend">后端已实现</span>
+            </div>
+            <p class="roadmap-desc">Connected Papers 风格的关联网络：基于 TF-IDF 内容相似度，叠加标签、文件夹与发表年份加权，展示近邻论文与探索路径。</p>
+          </div>
+          <div class="roadmap-card">
+            <div class="roadmap-card-head">
+              <h3>兴趣变迁时间线</h3>
+              <span class="roadmap-status data-ready">已有数据待接入</span>
+            </div>
+            <p class="roadmap-desc">按季度汇总研究方向（topic 标签）的论文数量，可视化阅读兴趣随时间的演进曲线；页面已嵌入 EVOLUTION 数据，待独立 Tab 渲染。</p>
+          </div>
+          <div class="roadmap-card">
+            <div class="roadmap-card-head">
+              <h3>LLM 智能中文摘要</h3>
+              <span class="roadmap-status in-progress">进行中</span>
+            </div>
+            <p class="roadmap-desc">两档策略：规则摘要质量足够时跳过 LLM；其余走 gpt-4o-mini 生成并缓存至 .papers_cache.json。默认构建零 API 调用；<code>--llm-summary</code> 增量补全，sync 脚本在 OPENAI_API_KEY 存在时自动启用。</p>
+          </div>
+          <div class="roadmap-card">
+            <div class="roadmap-card-head">
+              <h3>标签体系与校验增强</h3>
+              <span class="roadmap-status in-progress">进行中</span>
+            </div>
+            <p class="roadmap-desc">完善 taxonomy 分类、修复误标与 uncategorized 论文，在 UI 中展示 validation flags 与 needs_review 标记，支持批量复核。</p>
+          </div>
+          <div class="roadmap-card">
+            <div class="roadmap-card-head">
+              <h3>历史快照对比</h3>
+              <span class="roadmap-status data-ready">已有数据待接入</span>
+            </div>
+            <p class="roadmap-desc">利用每日快照（snapshots/history.json）对比库规模、方向分布与需复核数量的变化，追踪知识库增长轨迹。</p>
+          </div>
+          <div class="roadmap-card">
+            <div class="roadmap-card-head">
+              <h3>发表年份全景</h3>
+              <span class="roadmap-status data-ready">已有数据待接入</span>
+            </div>
+            <p class="roadmap-desc">独立于「标签×年份」的发表时间分布视图，展示各年论文入库量、日期来源覆盖率，辅助发现缺失元数据的年份段。</p>
+          </div>
+          <div class="roadmap-card">
+            <div class="roadmap-card-head">
+              <h3>阅读笔记与批注</h3>
+              <span class="roadmap-status planned">规划中</span>
+            </div>
+            <p class="roadmap-desc">关联 PDF 阅读器批注或独立 Markdown 笔记，在论文卡片中展示个人阅读心得；当前仅通过 mtime 推断最近阅读。</p>
+          </div>
+          <div class="roadmap-card">
+            <div class="roadmap-card-head">
+              <h3>筛选结果导出</h3>
+              <span class="roadmap-status planned">规划中</span>
+            </div>
+            <p class="roadmap-desc">将当前标签筛选、搜索结果的论文列表导出为 BibTeX、CSV 或 Markdown，便于引用管理与分享。</p>
+          </div>
+          <div class="roadmap-card">
+            <div class="roadmap-card-head">
+              <h3>公开发布模式</h3>
+              <span class="roadmap-status backend">已有基础</span>
+            </div>
+            <p class="roadmap-desc">生成不含阅读时间戳的公开版 HTML（--public 构建选项已支持）；后续可在 UI 提供一键切换或独立发布入口。</p>
+          </div>
+        </div>
+        <p class="roadmap-foot">本页内容为静态路线图，随开发进度更新。如有优先级建议，可在 generate_papers.py 或 _html_template.py 中直接修改。</p>
+      </div>
+    </div>
+
+    <!-- Unparsed tab -->
+    <div class="tab-content" id="tab-unparsed">
+      <div class="list-header">
+        <span id="unparsed-info">未解析文件 · __UNPARSED_CNT__ 个</span>
+        <select class="sort-select" id="unparsed-reason-filter">
+          <option value="all">全部原因</option>
+        </select>
+      </div>
+      <div class="paper-list" id="unparsed-list"></div>
+    </div>
   </div>
 </div>
 
 <script>
 const PAPERS = __PAPERS_JSON__;
+const UNPARSED = __UNPARSED_JSON__;
 const TAG_STATS = __TAG_STATS_JSON__;
 const PUB_STATS = __PUB_STATS_JSON__;
 const EVOLUTION = __EVOLUTION_JSON__;
+const HAS_READING = __HAS_READING__;
+
+// 阅读判定：编辑时间(mtime) 明显晚于下载时间(birthtime)，且在近 30 天内
+const READ_EDIT_THRESHOLD = 120;
+const READ_WINDOW_SEC = 30 * 24 * 3600;
 
 const SOURCE_LABELS = {
   pdf:'PDF首页', arxiv_id:'arXiv ID', arxiv_api:'arXiv API',
@@ -237,14 +360,75 @@ const LAYER_COLORS = {
   keyword:'keyword', folder:'folder', arxiv:'arxiv'
 };
 
+const UNPARSED_REASON_LABELS = {
+  no_pub_date:'缺少发表年份',
+  duplicate:'重复副本',
+  read_error:'无法读取',
+  excluded:'已排除',
+  empty_file:'空文件',
+  course_material:'课件/教程',
+  junk_title_course_notes:'垃圾标题·课件',
+  cn_tutorial_no_abstract:'中文教程·无摘要',
+  course_slides_no_abstract:'课件·无摘要',
+  numbered_slides:'编号幻灯片',
+  tutorial_slides:'教程幻灯片',
+  slides_prefix:'Slides 前缀',
+  slides_suffix:'Slides 后缀',
+  presentation_deck:'演示文稿',
+  tutorial_deck:'教程 deck',
+  lecture_deck:'讲座 deck',
+  slides_deck:'幻灯片',
+  valse_talk:'VALSE 报告',
+  intro_slides:'介绍幻灯片',
+};
+
+function unparsedReasonLabel(reason){
+  if(!reason) return '未知';
+  if(UNPARSED_REASON_LABELS[reason]) return UNPARSED_REASON_LABELS[reason];
+  if(reason.startsWith('dir:')) return '排除目录 · ' + reason.slice(4);
+  return reason;
+}
+
+function unparsedReasonClass(reason){
+  if(reason === 'no_pub_date' || reason === 'read_error') return 'fail';
+  if(reason === 'duplicate') return 'fail-warn';
+  return 'fail';
+}
+
 const state = {
   query:'', library:'all', year:'all', selectedTags:new Set(), filterMode:'and',
-  sort:'year-desc', sortBeforeSearch:null, activeTab:'list', layerFilter:null,
+  sort:'year-desc', sortBeforeSearch:null, activeTab:'reading', layerFilter:null,
+  unparsedReason:'all',
 };
 
 const THEME_KEY = 'papers-theme-mode';
 
-function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function fmtTs(ts){
+  if(!ts) return '';
+  const d = new Date(ts*1000);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function isEditedAfterDownload(p){
+  if(!p.mtime || !p.birthtime) return false;
+  return p.mtime > p.birthtime + READ_EDIT_THRESHOLD;
+}
+
+function isRecentlyRead(p, windowSec=READ_WINDOW_SEC){
+  if(!isEditedAfterDownload(p)) return false;
+  const now = Date.now()/1000;
+  return p.mtime >= now - windowSec;
+}
+
+function recentReadingPapers(windowSec=READ_WINDOW_SEC){
+  let ps = PAPERS.filter(p=>isRecentlyRead(p, windowSec));
+  if(state.library!=='all') ps = ps.filter(p=>p.library===state.library);
+  return ps.sort((a,b)=>(b.mtime||0)-(a.mtime||0));
+}
 
 function heatmapCellColor(value, maxVal){
   if(!value) return null;
@@ -300,37 +484,81 @@ function queryTerms(query){
   return query.toLowerCase().split(/\s+/).filter(Boolean);
 }
 
+function authorsText(p){
+  const a = p.authors;
+  if(!a) return '';
+  return Array.isArray(a) ? a.join(', ') : String(a);
+}
+
+function searchableFields(p){
+  const authors = authorsText(p).toLowerCase();
+  return {
+    title: (p.title||'').toLowerCase(),
+    authors,
+    abstract: (p.abstract||'').toLowerCase(),
+    summary: (p.summary_zh||'').toLowerCase(),
+    tags: (p.tags?.all||[]).join(' ').toLowerCase(),
+  };
+}
+
+function searchHaystack(fields){
+  return [fields.title, fields.authors, fields.abstract, fields.summary, fields.tags]
+    .filter(Boolean).join(' ');
+}
+
+function levDistance(a, b){
+  if(a === b) return 0;
+  if(!a.length) return b.length;
+  if(!b.length) return a.length;
+  const dp = Array.from({length: a.length + 1}, (_, i) => [i]);
+  for(let j = 1; j <= b.length; j++) dp[0][j] = j;
+  for(let i = 1; i <= a.length; i++){
+    for(let j = 1; j <= b.length; j++){
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+function termMatches(term, text){
+  if(!term) return true;
+  const t = term.toLowerCase();
+  if(!text) return false;
+  if(text.includes(t)) return true;
+  const tokens = text.split(/[\s,;·、]+/).filter(Boolean);
+  if(t.length >= 2 && tokens.some(tok => tok.startsWith(t))) return true;
+  if(t.length >= 4){
+    return tokens.some(tok =>
+      tok.length >= t.length - 1 && tok.length <= t.length + 2 &&
+      levDistance(t, tok) <= 1
+    );
+  }
+  return false;
+}
+
 function scorePaper(p, query){
   if(!query) return 0;
   const q = query.toLowerCase();
   const terms = queryTerms(query);
-  const title = (p.title||'').toLowerCase();
-  const abstract = (p.abstract||'').toLowerCase();
-  const summary = (p.summary_zh||'').toLowerCase();
-  const tags = (p.tags?.all||[]).join(' ').toLowerCase();
+  const fields = searchableFields(p);
   let score = 0;
-  if(title.includes(q)) score += 100;
-  terms.forEach(t=>{ if(title.includes(t)) score += 50; });
-  terms.forEach(t=>{ if(abstract.includes(t)) score += 20; });
+  if(fields.title.includes(q)) score += 100;
   terms.forEach(t=>{
-    if(summary.includes(t)) score += 5;
-    if(tags.includes(t)) score += 3;
+    if(termMatches(t, fields.title)) score += 50;
+    if(termMatches(t, fields.authors)) score += 40;
+    if(termMatches(t, fields.abstract)) score += 20;
+    if(termMatches(t, fields.summary)) score += 5;
+    if(termMatches(t, fields.tags)) score += 3;
   });
   return score;
 }
 
 function matchesSearch(p, query){
   if(!query) return true;
-  const q = query.toLowerCase();
   const terms = queryTerms(query);
-  const title = (p.title||'').toLowerCase();
-  const abstract = (p.abstract||'').toLowerCase();
-  const summary = (p.summary_zh||'').toLowerCase();
-  const tags = (p.tags?.all||[]).join(' ').toLowerCase();
-  const inPrimary = s => s.includes(q) || terms.some(t=>s.includes(t));
-  if(inPrimary(title) || inPrimary(abstract)) return true;
-  if(summary.includes(q) || tags.includes(q)) return true;
-  return terms.some(t=>summary.includes(t) || tags.includes(t));
+  const hay = searchHaystack(searchableFields(p));
+  return terms.every(term => termMatches(term, hay));
 }
 
 function useRelevanceSort(){
@@ -379,7 +607,7 @@ function buildTagSidebar(){
   const container = document.getElementById('tag-layers');
   container.innerHTML = '';
   const byLayer = TAG_STATS.by_layer||{};
-  const layers = ['topic','method','task','modality','keyword','folder','arxiv'];
+  const layers = ['topic','method','task','modality','folder','arxiv','keyword'];
 
   layers.forEach(layer=>{
     const tags = byLayer[layer]||{};
@@ -387,7 +615,7 @@ function buildTagSidebar(){
     if(!entries.length) return;
 
     const section = document.createElement('div');
-    section.className = 'layer-section';
+    section.className = 'layer-section' + (layer === 'topic' ? '' : ' collapsed');
     section.innerHTML = `<div class="layer-title">${LAYER_LABELS[layer]||layer} (${entries.length})</div>`;
     const tagsDiv = document.createElement('div');
     tagsDiv.className = 'layer-tags';
@@ -413,6 +641,7 @@ function toggleTag(tag){
   renderActiveTags();
   buildTagSidebar();
   refresh();
+  if(state.selectedTags.size) switchToTab('list');
 }
 
 function renderActiveTags(){
@@ -447,7 +676,176 @@ function highlightText(text, query){
   return out;
 }
 
-function renderPaperCard(p, highlight=''){
+// ── Virtual scroll ────────────────────────────────────────────────────────────
+const VIRTUAL_SCROLL = {};
+const VIRTUAL_EST_HEIGHT = 128;
+const VIRTUAL_OVERSCAN = 8;
+
+class VirtualScrollList {
+  constructor(container, {estimatedHeight=VIRTUAL_EST_HEIGHT, overscan=VIRTUAL_OVERSCAN}={}){
+    this.container = container;
+    this.estimatedHeight = estimatedHeight;
+    this.overscan = overscan;
+    this.items = [];
+    this.heights = [];
+    this.offsets = [0];
+    this.totalHeight = 0;
+    this.renderItem = null;
+    this._range = {start:-1, end:-1};
+    this._scrollRaf = 0;
+    this._measureRaf = 0;
+
+    this.container.classList.add('virtual-scroll-host');
+    this.spacer = document.createElement('div');
+    this.spacer.className = 'virtual-scroll-spacer';
+    this.viewport = document.createElement('div');
+    this.viewport.className = 'virtual-scroll-viewport';
+    this.container.innerHTML = '';
+    this.container.appendChild(this.spacer);
+    this.container.appendChild(this.viewport);
+
+    this._onScroll = ()=>{
+      if(this._scrollRaf) return;
+      this._scrollRaf = requestAnimationFrame(()=>{ this._scrollRaf = 0; this._paint(); });
+    };
+    this.container.addEventListener('scroll', this._onScroll, {passive:true});
+    this._ro = new ResizeObserver(()=>this._scheduleMeasure());
+  }
+
+  destroy(){
+    this._ro.disconnect();
+    if(this._scrollRaf) cancelAnimationFrame(this._scrollRaf);
+    if(this._measureRaf) cancelAnimationFrame(this._measureRaf);
+    this.container.removeEventListener('scroll', this._onScroll);
+    this.container.classList.remove('virtual-scroll-host');
+    delete VIRTUAL_SCROLL[this.container.id];
+  }
+
+  _scheduleMeasure(){
+    if(this._measureRaf) return;
+    this._measureRaf = requestAnimationFrame(()=>{ this._measureRaf = 0; this._measureVisible(); });
+  }
+
+  _measureVisible(){
+    let changed = false;
+    this.viewport.querySelectorAll('.virtual-scroll-row').forEach(row=>{
+      const idx = +row.dataset.index;
+      const h = row.offsetHeight;
+      if(h > 0 && Math.abs((this.heights[idx]||0) - h) > 1){
+        this.heights[idx] = h;
+        changed = true;
+      }
+    });
+    if(changed){
+      this._rebuildOffsets();
+      this.spacer.style.height = this.totalHeight + 'px';
+      this._range = {start:-1, end:-1};
+      this._paint();
+    }
+  }
+
+  _rebuildOffsets(){
+    this.offsets = [0];
+    let sum = 0;
+    for(let i = 0; i < this.items.length; i++){
+      sum += this.heights[i] || this.estimatedHeight;
+      this.offsets.push(sum);
+    }
+    this.totalHeight = sum;
+  }
+
+  _startIndex(scrollTop){
+    let lo = 0, hi = this.items.length;
+    while(lo < hi){
+      const mid = (lo + hi) >> 1;
+      if(this.offsets[mid + 1] <= scrollTop) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  }
+
+  _endIndex(scrollBottom){
+    let lo = 0, hi = this.items.length;
+    while(lo < hi){
+      const mid = (lo + hi) >> 1;
+      if(this.offsets[mid] < scrollBottom) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  }
+
+  _paint(){
+    const n = this.items.length;
+    if(!n || !this.renderItem) return;
+    const scrollTop = this.container.scrollTop;
+    const viewH = this.container.clientHeight || window.innerHeight;
+    const start = Math.max(0, this._startIndex(scrollTop) - this.overscan);
+    const end = Math.min(n, this._endIndex(scrollTop + viewH) + this.overscan);
+    if(start === this._range.start && end === this._range.end) return;
+    this._range = {start, end};
+
+    this._ro.disconnect();
+    const top = this.offsets[start];
+    this.viewport.style.transform = `translateY(${top}px)`;
+    const frag = document.createDocumentFragment();
+    for(let i = start; i < end; i++){
+      const row = document.createElement('div');
+      row.className = 'virtual-scroll-row';
+      row.dataset.index = i;
+      row.innerHTML = this.renderItem(this.items[i], i);
+      frag.appendChild(row);
+      this._ro.observe(row);
+    }
+    this.viewport.replaceChildren(frag);
+    this._scheduleMeasure();
+  }
+
+  setData(items, renderItem, {resetScroll=true}={}){
+    this.items = items;
+    this.renderItem = renderItem;
+    this.heights = items.map(()=>this.estimatedHeight);
+    this._rebuildOffsets();
+    this.spacer.style.height = this.totalHeight + 'px';
+    this._range = {start:-1, end:-1};
+    if(resetScroll) this.container.scrollTop = 0;
+    this._paint();
+  }
+
+  invalidate(){
+    this._range = {start:-1, end:-1};
+    this._paint();
+  }
+}
+
+function getVirtualList(containerId, opts){
+  const el = document.getElementById(containerId);
+  if(!el) return null;
+  if(VIRTUAL_SCROLL[containerId]) return VIRTUAL_SCROLL[containerId];
+  VIRTUAL_SCROLL[containerId] = new VirtualScrollList(el, opts);
+  return VIRTUAL_SCROLL[containerId];
+}
+
+function destroyVirtualList(containerId){
+  VIRTUAL_SCROLL[containerId]?.destroy();
+}
+
+function renderVirtualList(containerId, items, renderItem, emptyHtml, opts={}){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  if(!items.length){
+    destroyVirtualList(containerId);
+    el.innerHTML = emptyHtml;
+    return;
+  }
+  const vl = getVirtualList(containerId, opts);
+  vl.setData(items, renderItem, {resetScroll: opts.resetScroll !== false});
+}
+
+function refreshVirtualLists(){
+  Object.values(VIRTUAL_SCROLL).forEach(vl=>vl.invalidate());
+}
+
+function renderPaperCard(p, highlight='', showReadDate=false){
   const tags = p.tags||{};
   const allTags = tags.all||[];
   const tagHtml = allTags.map(t=>{
@@ -457,32 +855,161 @@ function renderPaperCard(p, highlight=''){
   }).join('');
   const libCls = p.library==='auto_ai'?'lib-auto':'lib-phys';
   const yr = `${p.pub_year}${p.pub_month?'-'+String(p.pub_month).padStart(2,'0'):''}`;
-  const src = p.pub_date_source ? `<span class="source-tag" title="日期来源">${SOURCE_LABELS[p.pub_date_source]||p.pub_date_source}</span>` : '';
+  const src = (p.pub_date_source && p.pub_date_source !== 'arxiv_id') ? `<span class="source-tag" title="日期来源">${SOURCE_LABELS[p.pub_date_source]||p.pub_date_source}</span>` : '';
   const arxiv = p.arxiv_id ? `<a href="https://arxiv.org/abs/${p.arxiv_id}" target="_blank">arXiv</a>` : '';
+  const altNote = (p.alternate_paths && p.alternate_paths.length)
+    ? `<span class="alt-copies" title="${esc(p.alternate_paths.join('\\n'))}">另有 ${p.alternate_paths.length} 份副本</span>` : '';
+  const readNote = (showReadDate && p.mtime)
+    ? `<span class="read-tag" title="下载 ${fmtTs(p.birthtime)}">阅读 ${fmtTs(p.mtime)}</span>` : '';
   const title = highlightText(p.title||'', highlight);
+  const authors = authorsText(p);
+  const authorLine = authors
+    ? `<div class="paper-meta" style="margin-top:-4px;margin-bottom:6px">${highlightText(authors, highlight)}</div>`
+    : '';
   return `<div class="paper-card">
     <div class="paper-title">${title}</div>
+    ${authorLine}
     ${p.summary_zh?`<div class="paper-summary">${esc(p.summary_zh)}</div>`:''}
     <div class="paper-meta">
       <span class="badge ${libCls}">${p.library}</span>
       <span>${esc(p.folder||'')}</span>
       <span>${yr}${src}</span>
+      ${readNote}
       ${arxiv}
+      ${altNote}
     </div>
     <div class="paper-tags">${tagHtml||'<span style="color:var(--muted);font-size:11px">无标签</span>'}</div>
   </div>`;
 }
 
-function renderPaperList(containerId, ps, limit=200){
-  const el = document.getElementById(containerId);
+function renderPaperList(containerId, ps, showReadDate=false){
   const sorted = sortPapers(ps);
-  if(!sorted.length){
-    el.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><div>没有匹配的论文</div></div>';
-    return;
+  renderVirtualList(
+    containerId,
+    sorted,
+    p=>renderPaperCard(p, state.query, showReadDate),
+    '<div class="empty-state"><div class="icon">🔍</div><div>没有匹配的论文</div></div>'
+  );
+}
+
+// ── Unparsed list ─────────────────────────────────────────────────────────────
+function unparsedListed(u){
+  if(u.reason === 'duplicate' && state.unparsedReason !== 'duplicate') return false;
+  return true;
+}
+
+function unparsedDefaultCount(){
+  return UNPARSED.filter(u=>u.reason !== 'duplicate').length;
+}
+
+function updateUnparsedTabCount(){
+  const el = document.getElementById('tab-unparsed-cnt');
+  if(el) el.textContent = unparsedDefaultCount();
+}
+
+function filteredUnparsed(){
+  let items = UNPARSED.filter(unparsedListed);
+  if(state.library !== 'all') items = items.filter(u=>u.library === state.library);
+  if(state.unparsedReason !== 'all') items = items.filter(u=>u.reason === state.unparsedReason);
+  if(state.query){
+    const hay = [
+      u.filename, u.stem, u.title, u.rel_path, u.path, u.folder,
+      unparsedReasonLabel(u.reason),
+    ].filter(Boolean).join(' ').toLowerCase();
+    items = items.filter(u=>matchesSearch({title:u.title, authors:'', abstract:hay}, state.query));
   }
-  const show = sorted.slice(0, limit);
-  el.innerHTML = show.map(p=>renderPaperCard(p, state.query)).join('')
-    + (sorted.length>limit?`<div style="text-align:center;padding:12px;color:var(--muted);font-size:12px">还有 ${sorted.length-limit} 篇未显示</div>`:'');
+  return items;
+}
+
+function renderUnparsedCard(u){
+  const libCls = u.library === 'auto_ai' ? 'lib-auto' : 'lib-phys';
+  const reasonCls = unparsedReasonClass(u.reason);
+  const reasonLabel = unparsedReasonLabel(u.reason);
+  const title = u.title
+    ? highlightText(u.title, state.query)
+    : `<span style="color:var(--muted)">（无标题）</span>`;
+  const titleNote = u.title_from_filename ? ' · 来自文件名' : '';
+  const arxiv = u.arxiv_id ? `<span>arXiv ${esc(u.arxiv_id)}</span>` : '';
+  const mtime = u.mtime ? `<span title="修改时间">mtime ${fmtTs(u.mtime)}</span>` : '';
+  const size = u.size != null ? `<span>${Math.round(u.size/1024)} KB</span>` : '';
+  const junk = (u.junk_reasons && u.junk_reasons.length)
+    ? `<span title="${esc(u.junk_reasons.join(', '))}">垃圾标题</span>` : '';
+  const needsReview = u.needs_review ? '<span class="badge fail-warn">需复核</span>' : '';
+  return `<div class="paper-card">
+    <div class="unparsed-stem">${highlightText(u.filename || u.stem, state.query)}</div>
+    <div class="paper-title">${title}${titleNote ? `<span style="font-size:11px;color:var(--muted);font-weight:400">${titleNote}</span>` : ''}</div>
+    <div class="paper-meta">
+      <span class="badge ${reasonCls}">${esc(reasonLabel)}</span>
+      ${needsReview}
+      <span class="badge ${libCls}">${esc(u.library||'')}</span>
+      <span>${esc(u.folder||'')}</span>
+      ${arxiv}
+      ${mtime}
+      ${size}
+      ${junk}
+    </div>
+  </div>`;
+}
+
+function renderUnparsedList(){
+  const items = filteredUnparsed();
+  const visibleTotal = UNPARSED.filter(u=>{
+    if(!unparsedListed(u)) return false;
+    if(state.library !== 'all' && u.library !== state.library) return false;
+    return true;
+  }).length;
+  const reasonCounts = {};
+  UNPARSED.forEach(u=>{
+    if(!unparsedListed(u)) return;
+    if(state.library !== 'all' && u.library !== state.library) return;
+    reasonCounts[u.reason] = (reasonCounts[u.reason]||0) + 1;
+  });
+  const reasonParts = Object.entries(reasonCounts)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,4)
+    .map(([r,c])=>`${unparsedReasonLabel(r)} ${c}`);
+  updateUnparsedTabCount();
+  let info = state.library === 'all'
+    ? `未解析文件 · ${items.length} / ${visibleTotal} 个`
+    : `未解析 · ${state.library} · ${items.length} 个`;
+  if(reasonParts.length) info += ' · ' + reasonParts.join(' · ');
+  if(state.query) info = `搜索「${state.query}」· ${items.length} 个`;
+  if(state.unparsedReason !== 'all') info += ` · ${unparsedReasonLabel(state.unparsedReason)}`;
+  document.getElementById('unparsed-info').textContent = info;
+
+  const sorted = [...items].sort((a,b)=>{
+    const ma = a.mtime||0, mb = b.mtime||0;
+    if(mb !== ma) return mb - ma;
+    return (a.stem||'').localeCompare(b.stem||'');
+  });
+  renderVirtualList(
+    'unparsed-list',
+    sorted,
+    u=>renderUnparsedCard(u),
+    '<div class="empty-state"><div class="icon">📄</div><div>没有匹配的未解析文件</div></div>',
+    {estimatedHeight:140}
+  );
+}
+
+function populateUnparsedReasonFilter(){
+  const sel = document.getElementById('unparsed-reason-filter');
+  const counts = {};
+  UNPARSED.forEach(u=>{
+    if(u.reason === 'duplicate') return;
+    counts[u.reason] = (counts[u.reason]||0) + 1;
+  });
+  Object.entries(counts)
+    .sort((a,b)=>b[1]-a[1])
+    .forEach(([reason,cnt])=>{
+      const o = document.createElement('option');
+      o.value = reason;
+      o.textContent = `${unparsedReasonLabel(reason)} (${cnt})`;
+      sel.appendChild(o);
+    });
+  sel.addEventListener('change', e=>{
+    state.unparsedReason = e.target.value;
+    renderUnparsedList();
+  });
 }
 
 // ── Tag bar chart ─────────────────────────────────────────────────────────────
@@ -561,11 +1088,11 @@ function renderHeatmap(){
       else { state.selectedTags.add(t1); state.selectedTags.add(t2); state.filterMode='and'; }
       document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===state.filterMode));
       renderActiveTags(); buildTagSidebar(); refresh();
-      state.activeTab='list'; document.querySelector('[data-tab=list]').click();
+      switchToTab('list');
     };
   });
   el.querySelectorAll('th[data-tag]').forEach(th=>{
-    th.onclick = ()=>{ toggleTag(th.dataset.tag); state.activeTab='list'; document.querySelector('[data-tab=list]').click(); };
+    th.onclick = ()=>{ toggleTag(th.dataset.tag); };
   });
 }
 
@@ -619,7 +1146,7 @@ function renderTimeline(){
       state.year = cell.dataset.year;
       document.getElementById('year-filter').value = cell.dataset.year;
       renderActiveTags(); buildTagSidebar(); refresh();
-      state.activeTab='list'; document.querySelector('[data-tab=list]').click();
+      switchToTab('list');
     };
   });
   el.querySelectorAll('th[data-tag]').forEach(th=>{
@@ -632,13 +1159,38 @@ function populateYearFilter(){
   Object.keys(PUB_STATS.by_year||{}).sort((a,b)=>b-a).forEach(y=>{
     const o=document.createElement('option'); o.value=y; o.textContent=y; sel.appendChild(o);
   });
-  sel.addEventListener('change', e=>{state.year=e.target.value; refresh();});
+  sel.addEventListener('change', e=>{
+    state.year=e.target.value;
+    refresh();
+    if(state.year!=='all') switchToTab('list');
+  });
+}
+
+// ── Recent reading ────────────────────────────────────────────────────────────
+function renderRecentReading(){
+  const month = recentReadingPapers(READ_WINDOW_SEC);
+  document.getElementById('reading-info').textContent =
+    state.library==='all'
+      ? `最近 30 天阅读 · ${month.length} 篇`
+      : `最近 30 天阅读 · ${state.library} · ${month.length} 篇`;
+
+  renderVirtualList(
+    'reading-list',
+    month,
+    p=>renderPaperCard(p, '', true),
+    '<div class="empty-state"><div class="icon">📖</div><div>近 30 天无阅读记录</div><div style="font-size:12px;margin-top:8px;color:var(--muted)">在 PDF 阅读器中打开并保存后，编辑时间会更新</div></div>'
+  );
 }
 
 // ── Refresh all views ─────────────────────────────────────────────────────────
 function refresh(){
   const ps = filtered();
-  document.getElementById('stat-filtered').textContent = ps.length;
+  const total = state.library==='all'
+    ? PAPERS.length
+    : PAPERS.filter(p=>p.library===state.library).length;
+  document.getElementById('stat-total').textContent = total;
+  const recentEl = document.getElementById('stat-recent-read');
+  if(recentEl) recentEl.textContent = recentReadingPapers(READ_WINDOW_SEC).length;
   let listInfo;
   if(state.query){
     listInfo = `搜索「${state.query}」· ${ps.length} 篇 · 相关度↓ 年份↓`;
@@ -652,12 +1204,19 @@ function refresh(){
 
   renderPaperList('paper-list', ps);
   renderTagChart(ps);
-  renderPaperList('chart-paper-list', ps, 50);
+  renderPaperList('chart-paper-list', ps);
   if(state.activeTab==='heatmap') renderHeatmap();
   if(state.activeTab==='timeline') renderTimeline();
+  if(state.activeTab==='reading' && HAS_READING) renderRecentReading();
+  if(state.activeTab==='unparsed') renderUnparsedList();
 }
 
 // ── Event wiring ──────────────────────────────────────────────────────────────
+function switchToTab(name){
+  const tab = document.querySelector(`[data-tab="${name}"]`);
+  if(tab) tab.click();
+}
+
 let searchTimer;
 document.getElementById('search').addEventListener('input', e=>{
   clearTimeout(searchTimer);
@@ -665,6 +1224,8 @@ document.getElementById('search').addEventListener('input', e=>{
 });
 document.getElementById('lib-filter').addEventListener('change', e=>{
   state.library=e.target.value; buildTagSidebar(); refresh();
+  if(state.activeTab==='reading' && HAS_READING) renderRecentReading();
+  if(state.activeTab==='unparsed') renderUnparsedList();
 });
 document.getElementById('sort-select').addEventListener('change', e=>{
   state.sort=e.target.value; refresh();
@@ -678,13 +1239,23 @@ document.querySelectorAll('.mode-btn').forEach(btn=>{
 });
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.onclick=()=>{
-    state.activeTab=tab.dataset.tab;
+    const name = tab.dataset.tab;
+    state.activeTab = name;
     document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t===tab));
     document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-    document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
-    if(tab.dataset.tab==='heatmap') renderHeatmap();
-    if(tab.dataset.tab==='timeline') renderTimeline();
-    if(tab.dataset.tab==='chart') renderTagChart(filtered());
+    document.getElementById('tab-'+name).classList.add('active');
+    if(name==='reading' && HAS_READING) renderRecentReading();
+    if(name==='unparsed') renderUnparsedList();
+    requestAnimationFrame(()=>{
+      refreshVirtualLists();
+      if(name==='chart'){
+        const ps = filtered();
+        renderTagChart(ps);
+        renderPaperList('chart-paper-list', ps);
+      }
+      if(name==='heatmap') renderHeatmap();
+      if(name==='timeline') renderTimeline();
+    });
   };
 });
 
@@ -695,7 +1266,18 @@ document.addEventListener('click', e=>{
 });
 buildTagSidebar();
 populateYearFilter();
+populateUnparsedReasonFilter();
 initTheme();
+if(!HAS_READING){
+  document.getElementById('stat-recent-read')?.closest('span')?.remove();
+  document.getElementById('tab-reading-btn')?.remove();
+  document.getElementById('tab-reading')?.remove();
+  state.activeTab = 'list';
+  document.querySelector('[data-tab=list]')?.classList.add('active');
+  document.getElementById('tab-list')?.classList.add('active');
+} else {
+  state.activeTab = 'reading';
+}
 refresh();
 </script>
 </body>

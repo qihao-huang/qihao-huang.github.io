@@ -49,11 +49,11 @@ TAXONOMY: dict[str, dict[str, list[str]]] = {
         "Tracking":              [r"multi.object track", r"\bmot\b", r"3d track", r"object track"],
         "SLAM / Localization":   [r"\bslam\b", r"visual odometry", r"\blocalization\b", r"simultaneous local"],
         # Embodied AI
-        "VLA":                   [r"\bvla\b", r"vision.language.action", r"vision.language model.*(robot|action|manipul)"],
+        "VLA":                   [r"\bvla\b", r"\bvlas\b", r"vision.language.action", r"vision.language model.*(robot|action|manipul)"],
         "Robot Manipulation":    [r"robot manipul", r"robotic manipul", r"pick.and.place", r"mobile manipul"],
         "Humanoid Robot":        [r"\bhumanoid\b", r"whole.body (control|motion|manipul)", r"bipedal", r"legged robot"],
         "Dexterous Manipulation":[r"dexterous", r"dexterity", r"in.hand manipul", r"multi.finger"],
-        "Force / Compliance":    [r"\bcompliance\b", r"\bimpedance\b", r"force control", r"contact.rich", r"force/torque"],
+        "Force / Compliance":    [r"\bcompliance\b", r"\bimpedance\b", r"force control", r"contact.rich", r"force/torque", r"\bforces\b"],
         "Teleoperation":         [r"\bteleoperation\b", r"\bteleop\b", r"human.in.the.loop", r"remote operat"],
         "Imitation Learning":    [r"imitation learn", r"behavior clon", r"demonstration learn", r"learning from demonstr"],
         "Data Collection":       [r"data collection (system|pipeline|framework)", r"collect.*demonstration"],
@@ -139,6 +139,24 @@ _ARXIV_CAT_MAP: dict[str, str] = {
     "stat.ML": "Machine Learning",
 }
 
+# Lowercase alias → canonical tag (Title Case topic/modality/method names).
+# Used to merge keyword variants with structured tags and dedupe display/stats.
+TAG_ALIASES: dict[str, str] = {
+    # Modality
+    "tactile": "Tactile",
+    "haptic": "Tactile",
+    # Topic — VLA
+    "vla": "VLA",
+    "vlas": "VLA",
+    # Topic — force / compliance
+    "force": "Force / Compliance",
+    "forces": "Force / Compliance",
+    "compliance": "Force / Compliance",
+    "impedance": "Force / Compliance",
+}
+
+_STRUCTURAL_LAYERS = ("topic", "method", "task", "modality", "folder", "arxiv")
+
 _compiled: dict[str, list[tuple[str, list[re.Pattern]]]] = {}
 
 
@@ -156,6 +174,50 @@ def _match_layer(text: str, layer: str) -> list[str]:
         tag for tag, patterns in _get_compiled(layer)
         if any(p.search(text) for p in patterns)
     ]
+
+
+def _canonical_tag(tag: str) -> str:
+    """Map alias / case variant to canonical display name."""
+    return TAG_ALIASES.get(tag.lower(), tag)
+
+
+def _dedup_key(tag: str) -> str:
+    """Case-insensitive semantic key for cross-layer deduplication."""
+    return _canonical_tag(tag).lower()
+
+
+def _filter_redundant_keywords(
+    keywords: list[str], result: dict[str, list[str]]
+) -> list[str]:
+    """Drop TF-IDF keywords already covered by a structured tag (incl. aliases)."""
+    structural_keys = {
+        _dedup_key(t)
+        for layer in _STRUCTURAL_LAYERS
+        for t in result.get(layer, [])
+    }
+    seen_kw: set[str] = set()
+    filtered: list[str] = []
+    for kw in keywords:
+        key = _dedup_key(kw)
+        if key in structural_keys or key in seen_kw:
+            continue
+        seen_kw.add(key)
+        filtered.append(kw)
+    return filtered
+
+
+def _build_all_tags(result: dict[str, list[str]]) -> list[str]:
+    """Flat display list: structural layers first, semantic dedup across layers."""
+    seen: set[str] = set()
+    all_tags: list[str] = []
+    for layer in (*_STRUCTURAL_LAYERS, "keyword"):
+        for t in result.get(layer, []):
+            key = _dedup_key(t)
+            if key in seen:
+                continue
+            seen.add(key)
+            all_tags.append(_canonical_tag(t))
+    return all_tags
 
 
 def _tokenize(text: str) -> list[str]:
@@ -233,18 +295,11 @@ def tag_paper(paper: dict, idf_vocab: dict[str, float] | None = None) -> dict[st
         tf = Counter(_tokenize(text_full))
         scores = {t: (1 + math.log(tf[t])) * idf_vocab[t] for t in tf if t in idf_vocab}
         top = sorted(scores, key=scores.get, reverse=True)[:3]  # type: ignore
-        result["keyword"] = [t for t in top if scores[t] > 0.8]
+        result["keyword"] = _filter_redundant_keywords(
+            [t for t in top if scores[t] > 0.8], result
+        )
 
-    # Flat "all" list for display/filter (deduplicated, ordered by layer priority)
-    seen: set[str] = set()
-    all_tags: list[str] = []
-    for layer in ("topic", "method", "task", "modality", "folder", "keyword", "arxiv"):
-        for t in result[layer]:
-            if t not in seen:
-                seen.add(t)
-                all_tags.append(t)
-
-    result["all"] = all_tags
+    result["all"] = _build_all_tags(result)
     return result
 
 

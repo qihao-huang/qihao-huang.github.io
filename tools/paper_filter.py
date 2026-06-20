@@ -4,6 +4,7 @@ paper_filter.py — 识别非论文/不合理条目（课件、slides、空文�
 
 from __future__ import annotations
 import re
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 
@@ -49,6 +50,70 @@ CN_JUNK_KEYWORDS: tuple[str, ...] = (
 # 无摘要 + 中文文件名 → 课件/笔记（非 arXiv 论文）
 CN_NO_ABS_PATTERN = re.compile(r"[\u4e00-\u9fff]")
 
+# 误解析标题特征
+_JUNK_RESEARCHGATE = re.compile(r"See discussions, stats", re.I)
+_JUNK_AFFILIATION = re.compile(r"(?:^|\d)Affiliation not available", re.I)
+_JUNK_CN_MULTI_SECTION = re.compile(r"基于.*[（(].*[)）].*[：:].*基于")
+_JUNK_CN_BASED_SECTION = re.compile(r"基于[^:：]{2,50}[（(][^)）]+[)）][：:]")
+_JUNK_CVPR_WATERMARK = re.compile(
+    r"This (?:CVPR|ICCV|WACV) (?:workshop )?paper is the Open Access version", re.I
+)
+_JUNK_ACCEPTED_ARTICLE = re.compile(
+    r"This article has been accepted for publication in a future issue", re.I
+)
+_JUNK_TO_APPEAR = re.compile(r"To appear in:", re.I)
+_JUNK_ACCEPTED_VERSION = re.compile(r"accepted version of the following article", re.I)
+_JUNK_JOURNAL_BOILERPLATE = re.compile(r"Reprints and permission:\s*sagepub", re.I)
+_JUNK_ARXIV_QUERY = re.compile(r"^arXiv Query:", re.I)
+_JUNK_NUMBERED_OUTLINE = re.compile(r"^\d+\.\s+.{10,}")
+_JUNK_UNDER_REVIEW = re.compile(
+    r"(?:^under review(?: as a conference paper)?(?: at \w+ \d{4})?$"
+    r"|^preprint\.?\s*under review\.?$"
+    r"|submitted to .+ under review)",
+    re.I,
+)
+_JUNK_LATEX_TEMPLATE = re.compile(r"^JOURNAL OF LATEX CLASS FILES", re.I)
+_JUNK_IEEE_HEADER = re.compile(
+    r"^(?:SUBMITTED TO )?IEEE TRANSACTIONS ON .+(?:\d+\s*)?$", re.I
+)
+_JUNK_PROCEEDINGS = re.compile(
+    r"^Proceedings of (?:the )?(?:\d+(?:st|nd|rd|th) )?(?:International )?(?:Conference|Workshop|Symposium)",
+    re.I,
+)
+_JUNK_PREPRINT_HEADER = re.compile(r"^Preprint\.?\s*$", re.I)
+_JUNK_DOWNLOAD_PDF = re.compile(r"^Download PDF", re.I)
+_JUNK_SUPPLEMENTARY = re.compile(r"^Supplementary Material:\s*", re.I)
+_JUNK_ICLR_FOOTER = re.compile(
+    r"^(?:Published|Under review) as a conference paper at ICLR \d{4}\.?$", re.I
+)
+_JUNK_CONF_PAPER = re.compile(
+    r"(?i)^Published as a conference paper at\b", re.I
+)
+_JUNK_UNDER_REVIEW_CONF = re.compile(
+    r"(?i)^Under review as a conference paper at\b", re.I
+)
+# 中文 PDF 批注/读书笔记段落标题（非论文正式标题）
+_JUNK_CN_ANNOTATION_PREFIX = re.compile(
+    r"^(?:动机|观察|提出|背景|方法|结论|贡献|问题|创新点|亮点|总结|概述|"
+    r"核心思想|主要贡献|实验结果|局限性)[：:\s]",
+    re.I,
+)
+_JUNK_CN_OBSERVATION = re.compile(r"^观察[：:\s]", re.I)
+_JUNK_CN_MOTIVATION = re.compile(r"^动机[：:\s]", re.I)
+_JUNK_CN_PROPOSE = re.compile(r"^提出[：:\s]", re.I)
+_JUNK_CN_CONTRIBUTION = re.compile(r"该论.{0,2}核心贡献", re.I)
+_JUNK_CN_CLASSIC_EXAMPLE = re.compile(r"^经典例.{0,2}[：:]", re.I)
+_JUNK_CN_METHOD_PLACEHOLDER = re.compile(r"^聚焦.{2,20}[，,]方法见标题", re.I)
+_JUNK_CN_SEE_ABSTRACT = re.compile(r"详见摘要")
+_JUNK_CN_READER_COMMENTARY = re.compile(
+    r"(?:^|[：:]\s*)(?:作者试图|本文试图|该文试图|论文试图|作者希望|作者旨在)",
+    re.I,
+)
+_JUNK_CN_PAPER_REF = re.compile(r"^该论文[：:\s]", re.I)
+
+# 标题长度上限（超过视为摘要/批注误解析）
+_MAX_TITLE_LEN = 200
+
 
 def arxiv_id_to_pub_date(arxiv_id: str) -> tuple[int, int] | None:
     """arXiv 新编号 YYMM.NNNNN → (year, month)；无效则 None。"""
@@ -93,6 +158,108 @@ def is_plausible_pub_year(year: int | None) -> bool:
     return year is not None and 1990 <= year <= MAX_PUB_YEAR
 
 
+def junk_title_reasons(title: str | None, paper: dict | None = None) -> list[str]:
+    """返回标题被判为垃圾的原因列表；空则正常。"""
+    if not title or not title.strip():
+        return []
+    t = unicodedata.normalize("NFKC", title.strip())
+    reasons: list[str] = []
+
+    if len(t) > _MAX_TITLE_LEN:
+        reasons.append("too_long")
+    if _JUNK_RESEARCHGATE.search(t):
+        reasons.append("researchgate")
+    if _JUNK_AFFILIATION.search(t):
+        reasons.append("affiliation")
+    if _JUNK_CN_MULTI_SECTION.search(t):
+        reasons.append("cn_multi_section")
+    if len(_JUNK_CN_BASED_SECTION.findall(t)) >= 2:
+        reasons.append("cn_section_summary")
+    if t.count(":") >= 3 or t.count("：") >= 3:
+        reasons.append("many_colons")
+    parts = [p.strip() for p in re.split(r"[：:] |\n", t) if p.strip()]
+    if len(parts) >= 3:
+        reasons.append("multi_parts")
+    if _JUNK_CVPR_WATERMARK.search(t):
+        reasons.append("cvpr_watermark")
+    if _JUNK_ACCEPTED_ARTICLE.search(t):
+        reasons.append("accepted_article")
+    if _JUNK_TO_APPEAR.search(t):
+        reasons.append("to_appear")
+    if _JUNK_ACCEPTED_VERSION.search(t):
+        reasons.append("accepted_version")
+    if _JUNK_JOURNAL_BOILERPLATE.search(t):
+        reasons.append("journal_boilerplate")
+    if _JUNK_ARXIV_QUERY.search(t):
+        reasons.append("arxiv_query")
+    if _JUNK_NUMBERED_OUTLINE.match(t):
+        reasons.append("numbered_outline")
+    if _JUNK_UNDER_REVIEW.search(t):
+        reasons.append("under_review")
+    if _JUNK_LATEX_TEMPLATE.search(t):
+        reasons.append("latex_template")
+    if _JUNK_IEEE_HEADER.search(t):
+        reasons.append("ieee_header")
+    if _JUNK_PROCEEDINGS.search(t):
+        reasons.append("proceedings")
+    if _JUNK_PREPRINT_HEADER.match(t):
+        reasons.append("preprint_header")
+    if _JUNK_DOWNLOAD_PDF.search(t):
+        reasons.append("download_pdf")
+    if _JUNK_SUPPLEMENTARY.search(t):
+        reasons.append("supplementary")
+    if _JUNK_ICLR_FOOTER.match(t):
+        reasons.append("iclr_footer")
+    if _JUNK_CONF_PAPER.search(t):
+        reasons.append("conf_paper_boilerplate")
+    if _JUNK_UNDER_REVIEW_CONF.search(t):
+        reasons.append("under_review_conf")
+    if _JUNK_CN_ANNOTATION_PREFIX.search(t):
+        reasons.append("cn_annotation_prefix")
+    if _JUNK_CN_OBSERVATION.search(t):
+        reasons.append("cn_observation")
+    if _JUNK_CN_MOTIVATION.search(t):
+        reasons.append("cn_motivation")
+    if _JUNK_CN_PROPOSE.search(t):
+        reasons.append("cn_propose")
+    if _JUNK_CN_CONTRIBUTION.search(t):
+        reasons.append("cn_contribution")
+    if _JUNK_CN_CLASSIC_EXAMPLE.search(t):
+        reasons.append("cn_classic_example")
+    if _JUNK_CN_METHOD_PLACEHOLDER.search(t):
+        reasons.append("cn_method_placeholder")
+    if _JUNK_CN_SEE_ABSTRACT.search(t):
+        reasons.append("cn_see_abstract")
+    if _JUNK_CN_READER_COMMENTARY.search(t):
+        reasons.append("cn_reader_commentary")
+    if _JUNK_CN_PAPER_REF.search(t):
+        reasons.append("cn_paper_ref")
+
+    if paper:
+        if paper.get("_title_is_filename"):
+            stem = paper.get("stem") or ""
+            if any(kw in stem for kw in ("实践", "讲解", "概述", "公开课", "课件", "教程", "作业", "仪式", "配置", "合辑")):
+                reasons.append("filename_course_stem")
+
+    return reasons
+
+
+def is_junk_title(title: str | None, paper: dict | None = None) -> bool:
+    """标题是否为误解析的摘要/水印/课件大纲等。"""
+    return bool(junk_title_reasons(title, paper))
+
+
+def title_from_stem(stem: str) -> str | None:
+    """从文件名 stem 生成可读标题（去掉 arXiv 编号前缀）。"""
+    if not stem:
+        return None
+    s = re.sub(r"^\d{4}\.\d{4,5}(?:v\d+)?[_\-]*", "", stem)
+    s = re.sub(r"[_\-]+", " ", s).strip()
+    if len(s) >= 3 and not re.match(r"^[\d\s.\-]+$", s):
+        return s
+    return None
+
+
 def should_exclude(paper: dict, pdf_path: Path | None = None) -> tuple[bool, str]:
     """
     判断是否应从论文库排除。
@@ -120,6 +287,11 @@ def should_exclude(paper: dict, pdf_path: Path | None = None) -> tuple[bool, str
     for kw in CN_JUNK_KEYWORDS:
         if kw in stem or kw in title:
             return True, "course_material"
+
+    # 重解析后仍为垃圾标题 + 无摘要 → 课件/笔记
+    if is_junk_title(title, paper) and not abstract:
+        if CN_NO_ABS_PATTERN.search(stem) or CN_NO_ABS_PATTERN.search(title):
+            return True, "junk_title_course_notes"
 
     if "智东西" in stem or "智东西" in title:
         return True, "course_material"

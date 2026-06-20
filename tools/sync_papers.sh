@@ -78,6 +78,12 @@ if [[ "$ONLINE" -eq 0 ]]; then
   GEN_ARGS=(--no-online "${GEN_ARGS[@]}")
 fi
 
+# Incremental LLM summaries when API key is available (two-tier: ~74% rules, ~26% LLM)
+if [[ -n "${OPENAI_API_KEY:-}" ]]; then
+  echo "[llm] OPENAI_API_KEY set — incremental LLM summaries (limit 50/run) ..."
+  GEN_ARGS=(--llm-summary --llm-limit 50 "${GEN_ARGS[@]}")
+fi
+
 echo "[generate] Running generate_papers.py ${GEN_ARGS[*]:-} ..."
 "$VENV_PY" "$GEN" "${GEN_ARGS[@]}"
 
