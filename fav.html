@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>qihao's 收藏仪表盘 — 261 条</title>
+<script>
+(function(){
+  var m = localStorage.getItem('fav-theme-mode') || 'system';
+  if (m === 'light' || m === 'dark') document.documentElement.setAttribute('data-theme', m);
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+:root{color-scheme:light dark}
+:root,:root[data-theme="dark"]{
+  --bg:#0f1419;--bg2:#1a2332;--bg3:#243044;--border:#2d3a4f;
+  --text:#e8edf4;--muted:#8b9cb3;--accent:#4dabf7;--accent-rgb:77,171,247;
+  --chart-text:#e8edf4;--chart-muted:#8b9cb3;--chart-bar:#4dabf7;
+  --tag:#51cf66;--method:#ff922b;--folder:#74c0fc;
+}
+:root[data-theme="light"]{
+  --bg:#f4f6f9;--bg2:#ffffff;--bg3:#e9eef4;--border:#d5dde8;
+  --text:#1a2332;--muted:#5c6b7f;--accent:#228be6;--accent-rgb:34,139,230;
+  --chart-text:#1a2332;--chart-muted:#5c6b7f;--chart-bar:#228be6;
+  --tag:#2f9e44;--method:#e8590c;--folder:#1c7ed6;
+}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="light"]):not([data-theme="dark"]){
+    --bg:#f4f6f9;--bg2:#ffffff;--bg3:#e9eef4;--border:#d5dde8;
+    --text:#1a2332;--muted:#5c6b7f;--accent:#228be6;--chart-text:#1a2332;--chart-muted:#5c6b7f;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;font-size:14px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+a{color:var(--accent);text-decoration:none}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:16px;flex-shrink:0;flex-wrap:wrap}
+.header h1{font-size:17px;font-weight:700;white-space:nowrap}
+.header h1 span{color:var(--accent)}
+.search-wrap{flex:1;max-width:420px;min-width:180px;position:relative}
+.search-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px 8px 34px;border-radius:8px;font-size:13px;outline:none}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap::before{content:"🔍";position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.6}
+.header-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.header-controls select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px}
+.stats{display:flex;gap:12px;font-size:12px;color:var(--muted);align-items:center;flex-wrap:wrap}
+.stat-val{color:var(--text);font-weight:600}
+.theme-switch{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:2px}
+.theme-btn{padding:4px 8px;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:12px}
+.theme-btn.active{background:var(--accent);color:#fff}
+.main{flex:1;display:flex;flex-direction:row;overflow:hidden}
+.sidebar{width:200px;min-width:160px;max-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sidebar-title{padding:12px 14px 8px;font-size:11px;font-weight:600;color:var(--muted);flex-shrink:0;border-bottom:1px solid var(--border)}
+.sidebar-tags{flex:1;overflow-y:auto;padding:6px 8px 12px}
+.sidebar-tag{display:flex;align-items:center;justify-content:space-between;width:100%;padding:7px 10px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--text);font-size:12px;cursor:pointer;text-align:left;transition:background .12s,border-color .12s,color .12s;font-family:inherit;line-height:1.35}
+.sidebar-tag:hover{filter:brightness(1.08)}
+.sidebar-tag.selected{font-weight:600}
+.sidebar-tag .tag-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.sidebar-tag .cnt{font-size:10px;color:var(--muted);margin-left:8px;flex-shrink:0}
+.sidebar-tag.selected .cnt{color:inherit;opacity:.75}
+.sidebar-tag.sidebar-tag-all.selected{background:rgba(var(--accent-rgb),.15);color:var(--accent);border-color:rgba(var(--accent-rgb),.35)}
+.sidebar-tag.sidebar-tag-all.selected .cnt{color:var(--accent)}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+@media(max-width:768px){
+  .main{flex-direction:column}
+  .sidebar{width:100%;max-width:none;border-right:none;border-bottom:1px solid var(--border);max-height:140px}
+  .sidebar-tags{display:flex;flex-wrap:wrap;gap:4px;padding:8px;align-content:flex-start}
+  .sidebar-tag{width:auto;flex:0 1 auto;max-width:100%;padding:5px 10px;border:1px solid var(--border);background:var(--bg3);border-radius:999px;font-size:11px}
+  .sidebar-tag.selected{border-color:var(--accent)}
+}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;padding:0 16px}
+.tab{padding:10px 16px;font-size:13px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{flex:1;overflow:hidden;display:none;flex-direction:column}
+.tab-content.active{display:flex}
+.chart-stack{display:flex;flex-direction:column;gap:16px;padding:16px 20px;flex:1;overflow:auto}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px}
+.chart-card-title{font-size:12px;color:var(--muted);padding:4px 8px 0;font-weight:600}
+.chart-box{width:100%}
+.chart-box.h240{height:240px}
+.chart-box.h280{height:280px}
+.chart-box.h360{height:360px}
+.chart-box.h420{height:420px}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.chart-row{grid-template-columns:1fr}}
+.list-header{padding:8px 16px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.sort-select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:3px 8px;border-radius:5px;font-size:11px}
+.fav-list{flex:1;overflow-y:auto;padding:12px 16px}
+.fav-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.fav-card:hover{border-color:var(--accent)}
+.fav-title{font-size:14px;font-weight:600;line-height:1.45;margin-bottom:6px}
+.fav-meta{font-size:11px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.badge.tag{cursor:pointer;border:1px solid transparent}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.highlight{background:rgba(77,171,247,.25);border-radius:2px}
+.footer-note{font-size:11px;color:var(--muted);padding:8px 20px;border-top:1px solid var(--border);flex-shrink:0}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>⭐ <span>收藏仪表盘</span></h1>
+  <div class="search-wrap">
+    <input id="search" type="text" placeholder="搜索标题、标签、域名…">
+  </div>
+  <div class="header-controls">
+    <div class="theme-switch" id="theme-switch">
+      <button class="theme-btn" data-theme-mode="system">自动</button>
+      <button class="theme-btn" data-theme-mode="light">☀</button>
+      <button class="theme-btn" data-theme-mode="dark">☾</button>
+    </div>
+    <div class="stats">
+      <span>共 <span class="stat-val" id="stat-total">261</span></span>
+      <span>标签 <span class="stat-val" id="stat-tags">0</span></span>
+      <span id="tagging-mode" style="font-size:10px">rule</span>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <aside class="sidebar" id="tag-sidebar">
+    <div class="sidebar-title">标签筛选</div>
+    <nav class="sidebar-tags" id="sidebar-tags"></nav>
+  </aside>
+  <div class="main-content">
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="timeline">收藏时间线</div>
+    <div class="tab" data-tab="list">收藏列表</div>
+  </div>
+
+  <div class="tab-content active" id="tab-timeline">
+    <div class="chart-stack">
+      <div class="chart-row">
+        <div class="chart-card">
+          <div class="chart-card-title">标签分布 Top 15</div>
+          <div class="chart-box h280" id="chart-tags-bar"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">收藏数量（按月）</div>
+          <div class="chart-box h280" id="chart-timeline"></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">标签密度（标签 × 月份）</div>
+        <div class="chart-box h420" id="chart-tag-density"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-list">
+    <div class="list-header">
+      <span id="list-count">0 条收藏</span>
+      <select class="sort-select" id="sort-select">
+        <option value="date-desc">最新收藏</option>
+        <option value="date-asc">最早收藏</option>
+        <option value="title">标题 A→Z</option>
+      </select>
+    </div>
+    <div class="fav-list" id="fav-list"></div>
+  </div>
+
+  <div class="footer-note">生成于 2026-06-20 08:34 UTC · 标签：rule</div>
+  </div>
+</div>
+
+<script>
+const DATA = {"generated_at":"2026-06-20 08:34 UTC","tagging":"rule","total":261,"tags":[{"name":"General Tech","count":74},{"name":"Foundation Model","count":73},{"name":"NVIDIA / Isaac","count":44},{"name":"Autonomous Driving","count":42},{"name":"VLA","count":36},{"name":"LLM / VLM","count":16},{"name":"World Model","count":15},{"name":"Reinforcement Learning","count":14},{"name":"Robot Manipulation","count":13},{"name":"Imitation Learning","count":13},{"name":"Humanoid","count":12},{"name":"Perception","count":9},{"name":"Tutorial / Course","count":7},{"name":"Blog / Notes","count":7},{"name":"Motion Planning","count":6},{"name":"Infrastructure","count":2},{"name":"Simulation","count":2},{"name":"Survey / Review","count":1}],"tag_count":18,"timeline":[{"month":"2024-05","count":1},{"month":"2024-07","count":2},{"month":"2025-03","count":1},{"month":"2025-05","count":4},{"month":"2025-07","count":8},{"month":"2025-08","count":39},{"month":"2025-09","count":1},{"month":"2025-10","count":10},{"month":"2025-11","count":40},{"month":"2025-12","count":24},{"month":"2026-02","count":3},{"month":"2026-03","count":35},{"month":"2026-04","count":29},{"month":"2026-05","count":30},{"month":"2026-06","count":34}],"tag_timeline":{"2024-05":{"Perception":1,"Blog / Notes":1},"2024-07":{"Autonomous Driving":1,"Perception":2},"2025-03":{"Reinforcement Learning":1},"2025-05":{"Autonomous Driving":1,"Reinforcement Learning":2,"Blog / Notes":1,"Motion Planning":1,"Imitation Learning":1,"General Tech":1},"2025-07":{"Foundation Model":1,"General Tech":4,"LLM / VLM":1,"Autonomous Driving":2,"Motion Planning":1,"Blog / Notes":2},"2025-08":{"VLA":6,"Foundation Model":9,"General Tech":17,"Humanoid":2,"NVIDIA / Isaac":3,"Imitation Learning":2,"Robot Manipulation":4,"Perception":2,"Autonomous Driving":3,"LLM / VLM":1,"Tutorial / Course":1,"Reinforcement Learning":1},"2025-09":{"General Tech":1},"2025-10":{"Foundation Model":4,"NVIDIA / Isaac":1,"Simulation":1,"LLM / VLM":1,"World Model":1,"Reinforcement Learning":2,"General Tech":1,"Perception":1,"Blog / Notes":1},"2025-11":{"General Tech":14,"NVIDIA / Isaac":13,"Simulation":1,"Tutorial / Course":4,"World Model":2,"Foundation Model":10,"Reinforcement Learning":2,"Autonomous Driving":7,"Perception":2,"Robot Manipulation":1},"2025-12":{"World Model":1,"Autonomous Driving":4,"Motion Planning":1,"NVIDIA / Isaac":10,"Foundation Model":11,"General Tech":6,"Reinforcement Learning":1,"VLA":1,"LLM / VLM":1},"2026-02":{"LLM / VLM":1,"Motion Planning":1,"VLA":1,"Autonomous Driving":1,"Survey / Review":1},"2026-03":{"LLM / VLM":11,"General Tech":4,"Autonomous Driving":18,"Reinforcement Learning":1,"NVIDIA / Isaac":3,"Foundation Model":13,"VLA":4,"World Model":4,"Perception":1,"Motion Planning":1,"Blog / Notes":1},"2026-04":{"VLA":5,"Foundation Model":5,"General Tech":9,"Imitation Learning":1,"Humanoid":7,"Robot Manipulation":2,"NVIDIA / Isaac":3,"Autonomous Driving":5,"World Model":3,"Motion Planning":1,"Tutorial / Course":1},"2026-05":{"World Model":3,"Foundation Model":7,"VLA":8,"Infrastructure":2,"General Tech":8,"Imitation Learning":8,"Reinforcement Learning":1,"Humanoid":2,"Robot Manipulation":1,"NVIDIA / Isaac":4,"Tutorial / Course":1,"Blog / Notes":1},"2026-06":{"Foundation Model":13,"VLA":11,"Robot Manipulation":5,"General Tech":9,"Humanoid":1,"Imitation Learning":1,"Reinforcement Learning":3,"NVIDIA / Isaac":7,"World Model":1}},"items":[{"id":"2c9c7d1a9526cc2c","title":"T-Rex: Tactile-Reactive Dexterous Manipulation","url":"https://tactile-rex.github.io/","domain":"tactile-rex.github.io","date":1781760382,"tags":["Robot Manipulation"],"primary_tag":"Robot Manipulation"},{"id":"990fd986d460bf86","title":"OpenArm","url":"https://openarm.dev/","domain":"openarm.dev","date":1781755460,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"45740183d83a910b","title":"Universal Manipulation Exoskeleton","url":"https://ume-exo.github.io/","domain":"ume-exo.github.io","date":1781748307,"tags":["Robot Manipulation"],"primary_tag":"Robot Manipulation"},{"id":"f8913b145378ee62","title":"jiangranlv/LDA-1B: [RSS 2026] LDA-1B: Scaling Latent Dynamics Action Model via Universal Embodied Data Ingestion","url":"https://github.com/jiangranlv/LDA-1B","domain":"github.com","date":1781688056,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"9883ce5bfb97eca3","title":"AgibotTech/ACoT-VLA: [CVPR 2026] Official implementation of \"ACoT-VLA: Action Chain-of-Thought for Vision-Language-Action Models\"","url":"https://github.com/AgibotTech/ACoT-VLA","domain":"github.com","date":1781687976,"tags":["VLA","Foundation Model"],"primary_tag":"VLA"},{"id":"04205c9b9e1ec497","title":"OpenGalaxea/GalaxeaVLA: Galaxea's open-source VLA repository","url":"https://github.com/OpenGalaxea/GalaxeaVLA","domain":"github.com","date":1781686860,"tags":["VLA","Foundation Model"],"primary_tag":"VLA"},{"id":"4a865537574850c0","title":"G05 Technical Blog","url":"https://opengalaxea.github.io/G05/","domain":"opengalaxea.github.io","date":1781686856,"tags":["VLA"],"primary_tag":"VLA"},{"id":"500f4ddf1e0db51f","title":"alibaba-damo-academy/RynnBrain: RynnBrain: Open Embodied Foundation Models","url":"https://github.com/alibaba-damo-academy/RynnBrain","domain":"github.com","date":1781686675,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"7b2188212c69daef","title":"unitreerobotics/unifolm-vla","url":"https://github.com/unitreerobotics/unifolm-vla","domain":"github.com","date":1781686626,"tags":["VLA","Foundation Model"],"primary_tag":"VLA"},{"id":"70b0b1014cc03134","title":"NVIDIA/Isaac-GR00T: NVIDIA Isaac GR00T N1.7 - A Foundation Model for Generalist Robots.","url":"https://github.com/NVIDIA/Isaac-GR00T/","domain":"github.com","date":1781685241,"tags":["VLA","NVIDIA / Isaac","Foundation Model"],"primary_tag":"VLA"},{"id":"25ac3e970ad44143","title":"Isaac GR00T - Generalist Robot 00 Technology | NVIDIA Developer","url":"https://developer.nvidia.com/isaac/gr00t","domain":"developer.nvidia.com","date":1781685227,"tags":["VLA","NVIDIA / Isaac"],"primary_tag":"VLA"},{"id":"ae62e6ebdce78055","title":"GEAR - Generalist Embodied Agent Research","url":"https://research.nvidia.com/labs/gear/","domain":"research.nvidia.com","date":1781685208,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"7f0618adc02c3a9d","title":"GR00T N1.6","url":"https://research.nvidia.com/labs/gear/gr00t-n1_6/","domain":"research.nvidia.com","date":1781685196,"tags":["VLA","NVIDIA / Isaac"],"primary_tag":"VLA"},{"id":"10f2ce0ffe21b6b9","title":"nvidia/GR00T-N1.7-SimplerEnv-Bridge · Hugging Face","url":"https://huggingface.co/nvidia/GR00T-N1.7-SimplerEnv-Bridge","domain":"huggingface.co","date":1781685182,"tags":["VLA","NVIDIA / Isaac"],"primary_tag":"VLA"},{"id":"11edaf286e9cf5a1","title":"The Unity of Reasoning and Action: AGIBOT Unveils Genie Operator-AGIBOT Innovation (Shanghai) Technology Co., Ltd.","url":"https://www.agibot.com/article/231/detail/56.html","domain":"agibot.com","date":1781680950,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"e004cf115b90b176","title":"VLA Workflow: Collect, Fine-tune, Deploy — GR00T-WholeBodyControl Documentation","url":"https://nvlabs.github.io/GR00T-WholeBodyControl/tutorials/vla_workflow.html","domain":"nvlabs.github.io","date":1781609922,"tags":["VLA","NVIDIA / Isaac"],"primary_tag":"VLA"},{"id":"1a6898013eadbc59","title":"Spirit-v1.5: Clean Data Is the Enemy of Great Robot Foundation Models","url":"https://www.spirit-ai.com/en/blog/spirit-v1-5","domain":"spirit-ai.com","date":1781605871,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"ef99b569f74d4cb4","title":"Spirit-AI-Team/spirit-v1.5: Spirit-v1.5: A Robotic Foundation Model by Spirit AI","url":"https://github.com/Spirit-AI-Team/spirit-v1.5","domain":"github.com","date":1781605835,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"aa6e4fad6f951618","title":"Current Robotics","url":"https://current-robotics.com/data","domain":"current-robotics.com","date":1781584117,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"4bda6ad6a2486d20","title":"Current Robotics","url":"https://current-robotics.com/","domain":"current-robotics.com","date":1781583839,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"92c8a813460025ee","title":"XPENG Robotics Multimodal","url":"https://xpeng-robotics.github.io/index.html","domain":"xpeng-robotics.github.io","date":1781512656,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"7770e80438184a05","title":"RLinf-USER: Unified System for Real-world Online Policy Learning — RLinf documentation","url":"https://rlinf.readthedocs.io/en/latest/rst_source/publications/rlinf_user.html","domain":"rlinf.readthedocs.io","date":1781361457,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"225c049e3a26241d","title":"GENE-26.5: Advancing Robotic Manipulation to Human Level","url":"https://www.genesis.ai/blog/gene-26-5-advancing-robotic-manipulation-to-human-level","domain":"genesis.ai","date":1781243935,"tags":["Robot Manipulation"],"primary_tag":"Robot Manipulation"},{"id":"240479dab2381ba1","title":"starVLA | Agile Lego-like Embodied AI Development","url":"https://starvla.github.io/","domain":"starvla.github.io","date":1781227132,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"cfa416069a9f5aec","title":"Humanoid Touch Dream","url":"https://humanoid-touch-dream.github.io/","domain":"humanoid-touch-dream.github.io","date":1781175234,"tags":["Humanoid"],"primary_tag":"Humanoid"},{"id":"783f1b5322debad6","title":"RLinf/RLinf: RLinf: Reinforcement Learning Infrastructure for Embodied and Agentic AI","url":"https://github.com/RLinf/RLinf","domain":"github.com","date":1781175169,"tags":["Reinforcement Learning","Foundation Model"],"primary_tag":"Reinforcement Learning"},{"id":"b3a4d118dfad944c","title":"HumanEgo: Zero-Shot Robot Learning from Minutes of Human Egocentric Videos","url":"https://humanego-ai.github.io/","domain":"humanego-ai.github.io","date":1781076279,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"379bd6a22a8dfe69","title":"VLA-JEPA · Hugging Face","url":"https://huggingface.co/docs/lerobot/main/en/vla_jepa","domain":"huggingface.co","date":1780841477,"tags":["VLA","Imitation Learning"],"primary_tag":"VLA"},{"id":"0b8c12d77ef7cc39","title":"NVIDIA/cosmos: NVIDIA Cosmos is an open platform of world models, datasets, and tools that enables developers to build Physical AI for robots, autonomous vehicles, smart infrastructure, and more.","url":"https://github.com/nvidia/cosmos","domain":"github.com","date":1780643571,"tags":["World Model","NVIDIA / Isaac","Foundation Model"],"primary_tag":"World Model"},{"id":"576656d5a3d62914","title":"FluxVLA/FluxBisim: IsaacSim based bimanual manipulation simulation for FluxVLA","url":"https://github.com/FluxVLA/FluxBisim","domain":"github.com","date":1780375508,"tags":["Robot Manipulation","Foundation Model"],"primary_tag":"Robot Manipulation"},{"id":"d99e7e49409ba6b1","title":"FluxVLA/FluxDAgger: A model-decoupled DAgger pipeline for dual-arm robotic manipulation — human-in-the-loop data collection compatible with arbitrary VLA and reward models.","url":"https://github.com/FluxVLA/FluxDAgger","domain":"github.com","date":1780375486,"tags":["VLA","Robot Manipulation","Foundation Model"],"primary_tag":"VLA"},{"id":"1f37494c07498994","title":"UniLab — A Heterogeneous Training Framework for Embodied Reinforcement Learning","url":"https://unilabsim.github.io/","domain":"unilabsim.github.io","date":1780375134,"tags":["Reinforcement Learning"],"primary_tag":"Reinforcement Learning"},{"id":"ab99503344418797","title":"hands-on-modern-rl/README.zh.md at main · walkinglabs/hands-on-modern-rl","url":"https://github.com/walkinglabs/hands-on-modern-rl/blob/main/README.zh.md","domain":"github.com","date":1780274188,"tags":["Reinforcement Learning","Foundation Model"],"primary_tag":"Reinforcement Learning"},{"id":"c852661acad4b670","title":"FluxVLA Engine文档 — FluxVLA 0.1.0 文档","url":"https://fluxvla.limxdynamics.com/zh/index.html","domain":"fluxvla.limxdynamics.com","date":1780272607,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"a8b79c3eb733c7c4","title":"Large Behavior Models and Atlas Find New Footing | Boston Dynamics","url":"https://bostondynamics.com/blog/large-behavior-models-atlas-find-new-footing/","domain":"bostondynamics.com","date":1780210001,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"62d7e6638a2769b9","title":"Overview — Train an SO-101 Robot From Sim-to-Real With NVIDIA Isaac","url":"https://docs.nvidia.com/learning/physical-ai/sim-to-real-so-101/latest/01-overview.html","domain":"docs.nvidia.com","date":1780039184,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"f297f42a12d21640","title":"Policy Deployment (lerobot-rollout)","url":"https://huggingface.co/docs/lerobot/main/en/inference","domain":"huggingface.co","date":1780034759,"tags":["Imitation Learning","Infrastructure"],"primary_tag":"Imitation Learning"},{"id":"23855ec4c12bb40c","title":"Visualize Dataset (v2.0+ latest dataset format) - a Hugging Face Space by lerobot","url":"https://huggingface.co/spaces/lerobot/visualize_dataset?path=%2Fimstevenpmwork%2Fthanos_picking_power_gem%2Fepisode_0","domain":"huggingface.co","date":1779948724,"tags":["Imitation Learning"],"primary_tag":"Imitation Learning"},{"id":"594becc8fb057057","title":"Visualize Dataset (v2.0+ latest dataset format) - a Hugging Face Space by lerobot","url":"https://huggingface.co/spaces/lerobot/visualize_dataset","domain":"huggingface.co","date":1779948299,"tags":["Imitation Learning"],"primary_tag":"Imitation Learning"},{"id":"174361070acdf905","title":"LeRobot Community Datasets: The “ImageNet” of Robotics — When and How?","url":"https://huggingface.co/blog/lerobot-datasets#what-makes-a-good-dataset","domain":"huggingface.co","date":1779948055,"tags":["Imitation Learning"],"primary_tag":"Imitation Learning"},{"id":"95beb8817edfd9ee","title":"Hiwonder-课程-LeRobot","url":"https://www.hiwonder.com.cn/course-detail/LeRobot.html","domain":"hiwonder.com.cn","date":1779946794,"tags":["Imitation Learning","Tutorial / Course"],"primary_tag":"Imitation Learning"},{"id":"82656239b4f9f714","title":"从零开始，用 Wan2.2 构建 VLA 世界模型的完整探索笔记（一） - 知乎","url":"https://zhuanlan.zhihu.com/p/2041946676676539935","domain":"zhuanlan.zhihu.com","date":1779938920,"tags":["VLA","World Model","Blog / Notes"],"primary_tag":"VLA"},{"id":"9013346c081e76ee","title":"Nvidia机器人技术专场Note——使用Isaac Lab 构建VLA Benchmark 平台 - 知乎","url":"https://zhuanlan.zhihu.com/p/1989384127703701491","domain":"zhuanlan.zhihu.com","date":1779701763,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"87821fa9cc897cb4","title":"unifolm-vla/README_cn.md at main · unitreerobotics/unifolm-vla","url":"https://github.com/unitreerobotics/unifolm-vla/blob/main/README_cn.md","domain":"github.com","date":1779523575,"tags":["VLA","Foundation Model"],"primary_tag":"VLA"},{"id":"ea4ff0b20cce53f7","title":"机器学习系统：设计和实现（第二版） - 机器学习系统：设计和实现（第二版）","url":"https://openmlsys.github.io/cn/","domain":"openmlsys.github.io","date":1779466968,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"dc2156122e20099a","title":"Post-Training Isaac GR00T N1.5 for LeRobot SO-101 Arm","url":"https://huggingface.co/blog/nvidia/gr00t-n1-5-so101-tuning","domain":"huggingface.co","date":1779331079,"tags":["VLA","NVIDIA / Isaac","Imitation Learning"],"primary_tag":"VLA"},{"id":"f2e901fefef21912","title":"为LeRobot SO-101机械臂微调NVIDIA GR00T N1.5模型 - 知乎","url":"https://zhuanlan.zhihu.com/p/1938339457687356969","domain":"zhuanlan.zhihu.com","date":1779331047,"tags":["VLA","Imitation Learning"],"primary_tag":"VLA"},{"id":"4add87aee801ef7a","title":"The DROID Dataset | DROID Docs","url":"https://droid-dataset.github.io/droid/the-droid-dataset","domain":"droid-dataset.github.io","date":1779271877,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"937a1128de75bbc3","title":"TheRobotStudio/SO-ARM100: Standard Open Arm 100","url":"https://github.com/TheRobotStudio/SO-ARM100","domain":"github.com","date":1779246681,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"5ca5f227e39656cf","title":"dreamzero0/dreamzero: Code to pretrain, fine-tune, and evaluate DreamZero and run sim & real-world evals","url":"https://github.com/dreamzero0/dreamzero","domain":"github.com","date":1779246472,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"0589b151f59bc3e6","title":"yuantianyuan01/FastWAM: Official codebase for Fast-WAM: Do World Action Models Need Test-time Future Imagination?","url":"https://github.com/yuantianyuan01/FastWAM","domain":"github.com","date":1779246062,"tags":["World Model","Foundation Model"],"primary_tag":"World Model"},{"id":"32318cfd4db36705","title":"LIBERO – LIBERO","url":"https://libero-project.github.io/main.html","domain":"libero-project.github.io","date":1779244262,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"250d06cb8c387425","title":"limxdynamics/FluxVLAEngine · Hugging Face","url":"https://huggingface.co/limxdynamics/FluxVLAEngine","domain":"huggingface.co","date":1779239515,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"b4056054f0717ac6","title":"Libero-已有模型推理 — FluxVLA 0.1.0 文档","url":"https://fluxvla.limxdynamics.com/zh/md_source/start/libero-inference.html","domain":"fluxvla.limxdynamics.com","date":1779185348,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"08d3e382148bca4c","title":"π₀.₅ 模型训练 — FluxVLA 0.1.0 文档","url":"https://fluxvla.limxdynamics.com/zh/md_source/examples/pi0.html","domain":"fluxvla.limxdynamics.com","date":1779183630,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"06078980b62dbf56","title":"GR00T-WholeBodyControl Documentation — GR00T-WholeBodyControl Documentation","url":"https://nvlabs.github.io/GR00T-WholeBodyControl/","domain":"nvlabs.github.io","date":1779183411,"tags":["VLA","NVIDIA / Isaac"],"primary_tag":"VLA"},{"id":"0448d35a46560f1e","title":"FluxVLA/FluxVLA: An all-in-one VLA engineering platform for embodied AI — from data to real-robot deployment.","url":"https://github.com/FluxVLA/FluxVLA","domain":"github.com","date":1779183227,"tags":["VLA","Infrastructure","Foundation Model"],"primary_tag":"VLA"},{"id":"2ee9352f437265f6","title":"GitHub - Robbyant/lingbot-vla: A Pragmatic VLA Foundation Model · GitHub","url":"https://github.com/Robbyant/lingbot-vla","domain":"github.com","date":1779182696,"tags":["VLA","Foundation Model"],"primary_tag":"VLA"},{"id":"a51b09477b14a5e9","title":"GitHub - Robbyant/lingbot-va: [RSS 2026] Causal video-action world model for generalist robot control · GitHub","url":"https://github.com/Robbyant/lingbot-va","domain":"github.com","date":1779182690,"tags":["VLA","World Model","Foundation Model"],"primary_tag":"VLA"},{"id":"3cd2976d0d27a37b","title":"Visual Whole-Body Loco-Manipulation","url":"https://wholebody-b1.github.io/","domain":"wholebody-b1.github.io","date":1778651510,"tags":["Humanoid","Robot Manipulation"],"primary_tag":"Humanoid"},{"id":"a5ba5765b7fb9a08","title":"Learning while Deploying: Fleet-Scale Reinforcement Learning for Generalist Robot Policies - Research - AGIBOT Finch","url":"https://finch.agibot.com/research/lwd","domain":"finch.agibot.com","date":1778642548,"tags":["Reinforcement Learning"],"primary_tag":"Reinforcement Learning"},{"id":"c2cd9ef1ac5dc400","title":"SO-ARM101开源6轴机械臂使用文档 | My Awesome Project","url":"https://docs.hiwonder.com.cn/projects/SO-ARM101/page/SO-ARM101%E5%BC%80%E6%BA%906%E8%BD%B4%E6%9C%BA%E6%A2%B0%E8%87%82%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3.html","domain":"docs.hiwonder.com.cn","date":1778635016,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"87d254e72e87832d","title":"Installation · Hugging Face","url":"https://huggingface.co/docs/lerobot/installation","domain":"huggingface.co","date":1778468932,"tags":["Imitation Learning"],"primary_tag":"Imitation Learning"},{"id":"e883feb6db48ce7b","title":"Advancements in humanoid robot dynamics and learning-based locomotion control methods","url":"https://www.oaepublish.com/articles/ir.2025.32","domain":"oaepublish.com","date":1777906076,"tags":["Humanoid"],"primary_tag":"Humanoid"},{"id":"68c34229fcbdff8e","title":"跨越比特与原子的鸿沟：关于Physical AI第一性原理的思考 - 知乎","url":"https://zhuanlan.zhihu.com/p/2032931834288419524?share_code=1k2FHWfChUA07&utm_psn=2032936211447293313&utm_source=wechat_session&utm_medium=social&s_r=0","domain":"zhuanlan.zhihu.com","date":1777534964,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"752e67fcaa126338","title":"OpenDriveLab/WholebodyVLA: [ICLR 2026] Towards Unified Latent VLA for Whole-body Loco-manipulation Control","url":"https://github.com/OpenDriveLab/WholebodyVLA","domain":"github.com","date":1777533521,"tags":["VLA","Humanoid","Autonomous Driving"],"primary_tag":"VLA"},{"id":"ecaed8b4ffb800d3","title":"NVlabs/GR00T-WholeBodyControl: Welcome to GR00T Whole-Body Control (WBC)! This is a unified platform for developing and deploying advanced humanoid controllers. This includes: Decoupled WBC models used in NVIDIA Isaac-Gr00t, Gr00t N1.5 and N1.6 and GEAR-SONIC","url":"https://github.com/NVlabs/GR00T-WholeBodyControl","domain":"github.com","date":1777528317,"tags":["VLA","Humanoid","NVIDIA / Isaac"],"primary_tag":"VLA"},{"id":"2cb15b21d4eec84f","title":"SONIC: Supersizing Motion Tracking for Natural Humanoid Whole-Body Control","url":"https://nvlabs.github.io/GEAR-SONIC/","domain":"nvlabs.github.io","date":1777528304,"tags":["Humanoid","NVIDIA / Isaac"],"primary_tag":"Humanoid"},{"id":"8c5da37ff538e8c4","title":"Humanoid General Motion Tracking","url":"https://gmt-humanoid.github.io/","domain":"gmt-humanoid.github.io","date":1777516232,"tags":["Humanoid"],"primary_tag":"Humanoid"},{"id":"45bc3aa99763e825","title":"MotionBricks: Scalable Real-Time Motions with Modular Latent Generative Model and Smart Primitives","url":"https://nvlabs.github.io/motionbricks/","domain":"nvlabs.github.io","date":1777514262,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"c6926bad6d2fb1c8","title":"Learning Whole-Body Humanoid Locomotion via Motion Generation and Motion Tracking","url":"https://wholebodylocomotion.github.io/","domain":"wholebodylocomotion.github.io","date":1777514148,"tags":["Humanoid"],"primary_tag":"Humanoid"},{"id":"2e2c1b7f8b27d61c","title":"starVLA/starVLA: StarVLA: A Lego-like Codebase for Vision-Language-Action Model Developing","url":"https://github.com/starVLA/starVLA","domain":"github.com","date":1777513578,"tags":["VLA","Foundation Model"],"primary_tag":"VLA"},{"id":"f7530f6a83e46567","title":"Dexbotic","url":"https://dexbotic.com/","domain":"dexbotic.com","date":1777512555,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"1ab8f43177d24359","title":"AirExo: Low-Cost Exoskeletons for Learning Whole-Arm Manipulation in the Wild","url":"https://airexo.github.io/","domain":"airexo.github.io","date":1777458068,"tags":["Robot Manipulation"],"primary_tag":"Robot Manipulation"},{"id":"846108b6856d51fd","title":"NuExo: A Wearable Exoskeleton Covering all Upper Limb ROM for Outdoor Data Collection and Teleoperation of Humanoid Robots","url":"https://nubot-nuexo.github.io/","domain":"nubot-nuexo.github.io","date":1777454358,"tags":["Humanoid"],"primary_tag":"Humanoid"},{"id":"3353fd6e4634d055","title":"HumanoidExo: Scalable Whole-Body Humanoid Manipulation via Wearable Exoskeleton","url":"https://humanoid-exo.github.io/","domain":"humanoid-exo.github.io","date":1777454357,"tags":["Humanoid","Robot Manipulation"],"primary_tag":"Humanoid"},{"id":"97517af0a88b28cc","title":"AirExo-2: Scaling up Generalizable Robotic Imitation Learning with Low-Cost Exoskeletons","url":"https://airexo.tech/airexo2/","domain":"airexo.tech","date":1777454354,"tags":["Imitation Learning"],"primary_tag":"Imitation Learning"},{"id":"ce7fbf5341edad2f","title":"HoloMotion","url":"https://horizonrobotics.github.io/robot_lab/holomotion/","domain":"horizonrobotics.github.io","date":1777451642,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"e41a19ec5d90b2b2","title":"DeepSeek V4 in vLLM: Efficient Long-context Attention | vLLM Blog","url":"https://vllm.ai/blog/deepseek-v4","domain":"vllm.ai","date":1777023008,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"a09b70db8ec089e6","title":"(9 封私信 / 16 条消息) 地平线 Sparse 多任务参考算法 SparseBevFusionMultitaskOE-V1.0 - 知乎","url":"https://zhuanlan.zhihu.com/p/2016523170019026131","domain":"zhuanlan.zhihu.com","date":1777004038,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"9397051087de4933","title":"dexmal/dexbotic: Dexbotic: Open-Source Vision-Language-Action Toolbox","url":"https://github.com/Dexmal/dexbotic","domain":"github.com","date":1776926436,"tags":["VLA","Foundation Model"],"primary_tag":"VLA"},{"id":"c47ee5397aababef","title":"AGIBOT WORLD","url":"https://agibot-world.com/challenge2026","domain":"agibot-world.com","date":1776925611,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"4976a1e0d3633e53","title":"RoboTwin 2.0","url":"https://robotwin-platform.github.io/","domain":"robotwin-platform.github.io","date":1776925610,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"f73d4cba3157a010","title":"RoboChallenge","url":"https://robochallenge.ai/home","domain":"robochallenge.ai","date":1776925607,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"e0a6137b044c35c5","title":"框架优美且适合入门VLA的论文分享：ORION - 知乎","url":"https://zhuanlan.zhihu.com/p/1944483851511506580","domain":"zhuanlan.zhihu.com","date":1776830982,"tags":["VLA","Tutorial / Course"],"primary_tag":"VLA"},{"id":"90baf535baaafd5d","title":"FluxVLA Engine文档 — FluxVLA 0.1.0 文档","url":"https://fluxvla.limxdynamics.com/zh/","domain":"fluxvla.limxdynamics.com","date":1776683900,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"8ebacd27e49eebb3","title":"Fast-WAM: 关于WAM核心能力来源的思考 - 知乎","url":"https://zhuanlan.zhihu.com/p/2018464228785275484","domain":"zhuanlan.zhihu.com","date":1776681565,"tags":["World Model"],"primary_tag":"World Model"},{"id":"ca456c7d7990f3df","title":"OpenDriveLab/WorldEngine: WorldEngine: Towards the Era of Post-Training for Physical AI","url":"https://github.com/OpenDriveLab/WorldEngine","domain":"github.com","date":1776681523,"tags":["Autonomous Driving","Foundation Model"],"primary_tag":"Autonomous Driving"},{"id":"7ccaf115118f7272","title":"Gemini Robotics ER 1.6: Enhanced Embodied Reasoning — Google DeepMind","url":"https://deepmind.google/blog/gemini-robotics-er-1-6/","domain":"deepmind.google","date":1776678231,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"a03d26197837f141","title":"agibot-world/AgiBotWorld2026 · Datasets at Hugging Face","url":"https://huggingface.co/datasets/agibot-world/AgiBotWorld2026","domain":"huggingface.co","date":1775643487,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"f282475311408bc1","title":"leofan90/Awesome-World-Models: A comprehensive list of papers for the definition of World Models and using World Models for General Video Generation, Embodied AI, and Autonomous Driving, including papers, codes, and related websites.","url":"https://github.com/leofan90/awesome-world-models","domain":"github.com","date":1775642620,"tags":["World Model","Autonomous Driving","Foundation Model"],"primary_tag":"World Model"},{"id":"d4de41d4b6ba3d69","title":"Fast-WAM vs LeWorldModel：大规模预训练 vs 任务快速训练——World Model 的两种哲学 - 知乎","url":"https://zhuanlan.zhihu.com/p/2020176998459285938","domain":"zhuanlan.zhihu.com","date":1775007547,"tags":["World Model"],"primary_tag":"World Model"},{"id":"c233bbd2107f181a","title":"端到端对比：ResAD、DiffusionDrive、DiffusionDriveV2 - 知乎","url":"https://zhuanlan.zhihu.com/p/2021975831644218003","domain":"zhuanlan.zhihu.com","date":1775007503,"tags":["Autonomous Driving","Motion Planning"],"primary_tag":"Autonomous Driving"},{"id":"adb3e61e96337221","title":"英伟达 Alpamayo：基于推理的自动驾驶大模型设计与量产部署全解析","url":"https://mp.weixin.qq.com/s/TSqAkauLJljqGSi9bg__sQ","domain":"mp.weixin.qq.com","date":1774516597,"tags":["Autonomous Driving","LLM / VLM","NVIDIA / Isaac","Blog / Notes"],"primary_tag":"Autonomous Driving"},{"id":"baa2ec1df6a1f3b3","title":"小鹏最新EvoDriveVLA解读：VLA2.0自动驾驶模型的双师蒸馏新范式","url":"https://mp.weixin.qq.com/s/d1vMWcmEKSyGEcHPZb4Pyw","domain":"mp.weixin.qq.com","date":1774516294,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"0bfb2dc53eedb824","title":"📦 Prebuilt Wheels for cumm and spconv | cumm-spconv","url":"https://ratharog.github.io/cumm-spconv/","domain":"ratharog.github.io","date":1774246031,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"5a9361163efcce90","title":"(2 封私信 / 13 条消息) BEVFusion: 基于统一BEV表征的多任务多传感器融合 - 知乎","url":"https://zhuanlan.zhihu.com/p/521821929","domain":"zhuanlan.zhihu.com","date":1773741406,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"8a53f7b43f04cf7c","title":"NVIDIA/TensorRT-Edge-LLM: High-performance, light-weight C++ LLM and VLM Inference Software for Physical AI","url":"https://github.com/NVIDIA/TensorRT-Edge-LLM","domain":"github.com","date":1773716260,"tags":["LLM / VLM","NVIDIA / Isaac","Foundation Model"],"primary_tag":"LLM / VLM"},{"id":"381b94e95c850639","title":"华科&地平线Senna-2创新突破：VLM与端到端策略深度对齐，决策规划一致性提升19.3%！","url":"https://mp.weixin.qq.com/s/hOkPMQf0pwdrLbygClSYPg","domain":"mp.weixin.qq.com","date":1773630626,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"5653f6bf029ec8f6","title":"Qwen VL 三代架构深度对比 Qwen2-2.5-3-VL","url":"https://zhuanlan.zhihu.com/p/2013277999647192235","domain":"zhuanlan.zhihu.com","date":1773629728,"tags":["LLM / VLM"],"primary_tag":"LLM / VLM"},{"id":"b28a178c06a49b16","title":"NVIDIA/Megatron-LM: Ongoing research training transformer models at scale","url":"https://github.com/NVIDIA/Megatron-LM","domain":"github.com","date":1773387708,"tags":["NVIDIA / Isaac","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"062e698dcf8fab03","title":"Mashiroln/curious_vla","url":"https://github.com/Mashiroln/curious_vla","domain":"github.com","date":1773374760,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"fee6cc1e5bf0453d","title":"DINOv3","url":"https://ai.meta.com/research/dinov3/","domain":"ai.meta.com","date":1773364285,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"1f6d1ad7d050553a","title":"(2 封私信 / 11 条消息) 自回归式世界模型 + 端到端模型：Epona - 知乎","url":"https://zhuanlan.zhihu.com/p/1932480841222723066","domain":"zhuanlan.zhihu.com","date":1773227078,"tags":["World Model","Autonomous Driving"],"primary_tag":"World Model"},{"id":"3a4801c9da81170f","title":"ICCV 2025 | 地平线 & 清华 Epona：自回归扩散世界模型，革新自动驾驶长视频生成与轨迹规划 SOTA","url":"https://mp.weixin.qq.com/s/pMVFhQxFiLKQay8MzDADPw","domain":"mp.weixin.qq.com","date":1773227076,"tags":["World Model","Autonomous Driving","Motion Planning"],"primary_tag":"World Model"},{"id":"bac246a8cefc3dd8","title":"OpenDriveLab/DriveLM: [ECCV 2024 Oral] DriveLM: Driving with Graph Visual Question Answering","url":"https://github.com/OpenDriveLab/DriveLM","domain":"github.com","date":1773227071,"tags":["Autonomous Driving","Foundation Model"],"primary_tag":"Autonomous Driving"},{"id":"93eb63325a06c79d","title":"wzzheng/GenAD: [ECCV 2024] GenAD: Generative End-to-End Autonomous Driving","url":"https://github.com/wzzheng/GenAD","domain":"github.com","date":1773227068,"tags":["Autonomous Driving","Foundation Model"],"primary_tag":"Autonomous Driving"},{"id":"f6ed7179bb2d217c","title":"hustvl/Senna: Bridging Large Vision-Language Models and End-to-End Autonomous Driving","url":"https://github.com/hustvl/Senna","domain":"github.com","date":1773227052,"tags":["Autonomous Driving","LLM / VLM","Foundation Model"],"primary_tag":"Autonomous Driving"},{"id":"aa3b5121084fac1b","title":"xiaomi-mlab/Orion: [ICCV 2025] Official code of \"ORION: A Holistic End-to-End Autonomous Driving Framework by Vision-Language Instructed Action Generation\"","url":"https://github.com/xiaomi-mlab/Orion","domain":"github.com","date":1773227041,"tags":["VLA","Autonomous Driving","Foundation Model"],"primary_tag":"VLA"},{"id":"3129d60905931980","title":"DriveVLA/OpenDriveVLA: [AAAI 2026] OpenDriveVLA: Towards End-to-end Autonomous Driving with Large Vision Language Action Model","url":"https://github.com/DriveVLA/OpenDriveVLA","domain":"github.com","date":1773227024,"tags":["VLA","Autonomous Driving","Foundation Model"],"primary_tag":"VLA"},{"id":"9c5ea53c165c9262","title":"ucla-mobility/AutoVLA: [NeurIPS 2025] AutoVLA: A Vision-Language-Action Model for End-to-End Autonomous Driving with Adaptive Reasoning and Reinforcement Fine-Tuning","url":"https://github.com/ucla-mobility/AutoVLA","domain":"github.com","date":1773227020,"tags":["VLA","Autonomous Driving","Foundation Model"],"primary_tag":"VLA"},{"id":"e3a61baebfd927c5","title":"Kevin-thu/Epona: Official Code for Epona: Autoregressive Diffusion World Model for Autonomous Driving (ICCV 2025)","url":"https://github.com/Kevin-thu/Epona/","domain":"github.com","date":1773226992,"tags":["World Model","Autonomous Driving","Foundation Model"],"primary_tag":"World Model"},{"id":"6305986edd60e3cc","title":"happinesslz/DrivePI: [CVPR 2026] DrivePI: Spatial-aware 4D MLLM for Unified Autonomous Driving Understanding, Perception, Prediction and Planning","url":"https://github.com/happinesslz/DrivePI","domain":"github.com","date":1773226975,"tags":["Autonomous Driving","Perception","Foundation Model"],"primary_tag":"Autonomous Driving"},{"id":"d958b92d39d06250","title":"Mi3-Lab/doScenes-VLM-Planning","url":"https://github.com/Mi3-Lab/doScenes-VLM-Planning","domain":"github.com","date":1773226880,"tags":["LLM / VLM","Foundation Model"],"primary_tag":"LLM / VLM"},{"id":"9e1c69988b85b0d4","title":"Thinklab-SJTU/Awesome-LLM4AD: A curated list of awesome LLM/VLM/VLA/World Model for Autonomous Driving(LLM4AD) resources (continually updated)","url":"https://github.com/Thinklab-SJTU/Awesome-LLM4AD","domain":"github.com","date":1773221422,"tags":["VLA","World Model","Autonomous Driving"],"primary_tag":"VLA"},{"id":"6a5a641411d172e9","title":"transformers/src/transformers/models/qwen3_5_moe/modeling_qwen3_5_moe.py at main · huggingface/transformers","url":"https://github.com/huggingface/transformers/blob/main/src/transformers/models/qwen3_5_moe/modeling_qwen3_5_moe.py","domain":"github.com","date":1773220828,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"be9710eb0767e4ac","title":"小米又中CVPR2026 | VGGDrive 仅用轨迹数据训练即可碾压SOTA，为自动驾驶注入真正“空间感”","url":"https://mp.weixin.qq.com/s/YQh3DcQdr0l3NuW0BzUuww","domain":"mp.weixin.qq.com","date":1773218336,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"941cd3f250d651f1","title":"Qwen3-Next","url":"https://qwen.ai/blog?id=qwen3-next","domain":"qwen.ai","date":1773216818,"tags":["LLM / VLM"],"primary_tag":"LLM / VLM"},{"id":"65b937b755e3754c","title":"GLM-5：从Vibe编码到智体工程 - 知乎","url":"https://zhuanlan.zhihu.com/p/2009736812235613510","domain":"zhuanlan.zhihu.com","date":1773112270,"tags":["LLM / VLM"],"primary_tag":"LLM / VLM"},{"id":"f0d01d171915a4d4","title":"Qwen3-VL","url":"https://qwen.ai/blog?id=99f0335c4ad9ff6153e517418d48535ab6d8afef&from=research.latest-advancements-list","domain":"qwen.ai","date":1773106489,"tags":["LLM / VLM"],"primary_tag":"LLM / VLM"},{"id":"6bc0f734fa8a74a3","title":"跟着 verl 代码学习 GRPO 算法流程 - 知乎","url":"https://zhuanlan.zhihu.com/p/1899507365507732891","domain":"zhuanlan.zhihu.com","date":1773106377,"tags":["Reinforcement Learning"],"primary_tag":"Reinforcement Learning"},{"id":"2ceee6630994af0c","title":"Qwen/Qwen3.5-27B-GPTQ-Int4 · Hugging Face","url":"https://huggingface.co/Qwen/Qwen3.5-27B-GPTQ-Int4","domain":"huggingface.co","date":1773039905,"tags":["LLM / VLM"],"primary_tag":"LLM / VLM"},{"id":"e3cb9391cc5530d1","title":"FoundationAD","url":"https://my.feishu.cn/wiki/Zm8iwPNwKi0unIkYdFGcPnr9nbb","domain":"my.feishu.cn","date":1773025366,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"f24c496626d4dc37","title":"Qwen3.5合集详情-来自Qwen · 魔搭社区","url":"https://modelscope.cn/collections/Qwen/Qwen35","domain":"modelscope.cn","date":1773024699,"tags":["LLM / VLM"],"primary_tag":"LLM / VLM"},{"id":"87b29de49b859f5a","title":"Qwen3.5 - a Qwen Collection","url":"https://huggingface.co/collections/Qwen/qwen35","domain":"huggingface.co","date":1773023050,"tags":["LLM / VLM"],"primary_tag":"LLM / VLM"},{"id":"597feae8b1bd703e","title":"Demonstrably Safe AI For Autonomous Driving","url":"https://waymo.com/blog/2025/12/demonstrably-safe-ai-for-autonomous-driving/","domain":"waymo.com","date":1772790720,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"5f1f72e28fa9aca9","title":"Introducing Waymo's Research on an End-to-End Multimodal Model for Autonomous Driving","url":"https://waymo.com/blog/2024/10/introducing-emma/","domain":"waymo.com","date":1772790701,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"3058cf74e84fa35c","title":"SIMA 2: A Gemini-Powered AI Agent for 3D Virtual Worlds — Google DeepMind","url":"https://deepmind.google/blog/sima-2-an-agent-that-plays-reasons-and-learns-with-you-in-virtual-3d-worlds/","domain":"deepmind.google","date":1772790404,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"8c23266cefe3175b","title":"Waymo MotionLM+RL与DiffusionDriveV2的RL - 知乎","url":"https://zhuanlan.zhihu.com/p/1983558180303827775","domain":"zhuanlan.zhihu.com","date":1770876430,"tags":["Motion Planning"],"primary_tag":"Motion Planning"},{"id":"0929327f44047c74","title":"VLM｜漫谈视觉语言模型（VLM）预训练方法：CLIP、ALIGN、SigLIP、BLIP、Flamingo 和 LLaVA - 知乎","url":"https://zhuanlan.zhihu.com/p/1923029357766636478","domain":"zhuanlan.zhihu.com","date":1770858164,"tags":["LLM / VLM"],"primary_tag":"LLM / VLM"},{"id":"7f4d4db359a4e404","title":"自动驾驶 VLA 最新综述：重要模型盘点 - 知乎","url":"https://zhuanlan.zhihu.com/p/1948896079941731927","domain":"zhuanlan.zhihu.com","date":1770612446,"tags":["VLA","Autonomous Driving","Survey / Review"],"primary_tag":"VLA"},{"id":"2419aa9d264ddc79","title":"cuda 12.8 cumm-128 · Issue #752 · traveller59/spconv","url":"https://github.com/traveller59/spconv/issues/752","domain":"github.com","date":1766547666,"tags":["NVIDIA / Isaac","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"b91761f36f7dcb15","title":"spconv-cu126 · PyPI","url":"https://pypi.org/project/spconv-cu126/","domain":"pypi.org","date":1766541862,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"c0e24a2e523eee0e","title":"cumm · PyPI","url":"https://pypi.org/project/cumm/","domain":"pypi.org","date":1766541740,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"f37953a6c3e231af","title":"mmdetection3d/projects/BEVFusion at main · open-mmlab/mmdetection3d","url":"https://github.com/open-mmlab/mmdetection3d/tree/main/projects/BEVFusion","domain":"github.com","date":1766541705,"tags":["Autonomous Driving","Foundation Model"],"primary_tag":"Autonomous Driving"},{"id":"00b7c214763977aa","title":"CUDA Toolkit 13.1 - Release Notes — Release Notes 13.1 documentation","url":"https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html#cuda-major-component-versions__table-cuda-toolkit-driver-versions","domain":"docs.nvidia.com","date":1766539127,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"2b2de28431760782","title":"Get Started — MMDetection3D 1.4.0 documentation","url":"https://mmdetection3d.readthedocs.io/en/latest/get_started.html","domain":"mmdetection3d.readthedocs.io","date":1766539005,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"6fccb2fc43bd13da","title":"traveller59/spconv: Spatial Sparse Convolution Library","url":"https://github.com/traveller59/spconv","domain":"github.com","date":1766539001,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"921ff02dabfba23a","title":"open-mmlab/OpenPCDet: OpenPCDet Toolbox for LiDAR-based 3D Object Detection.","url":"https://github.com/open-mmlab/OpenPCDet","domain":"github.com","date":1766487422,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"9cd811dac1d26055","title":"CUDA - Wikiwand","url":"https://www.wikiwand.com/en/articles/CUDA","domain":"wikiwand.com","date":1766486967,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"efe2c288e99bc6ca","title":"mmdetection3d/docker/Dockerfile at dev-1.x · open-mmlab/mmdetection3d","url":"https://github.com/open-mmlab/mmdetection3d/blob/dev-1.x/docker/Dockerfile","domain":"github.com","date":1766482640,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"f46e7ffca08dd16d","title":"NVIDIA GPU 比较表 | NVIDIA","url":"https://www.nvidia.cn/studio/compare-gpus/","domain":"nvidia.cn","date":1766452042,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"72dd84b75debc804","title":"世界模型在自动驾驶轨迹规划上的应用 - 知乎","url":"https://zhuanlan.zhihu.com/p/1986086257651106808","domain":"zhuanlan.zhihu.com","date":1766381529,"tags":["World Model","Autonomous Driving","Motion Planning"],"primary_tag":"World Model"},{"id":"d35e051cc537b908","title":"AI and HPC Containers | NVIDIA Developer | NVIDIA Developer","url":"https://developer.nvidia.com/ai-hpc-containers","domain":"developer.nvidia.com","date":1766138459,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"8ccf48a0b779cae5","title":"NVIDIA/nvidia-container-toolkit: Build and run containers leveraging NVIDIA GPUs","url":"https://github.com/NVIDIA/nvidia-container-toolkit","domain":"github.com","date":1766134538,"tags":["NVIDIA / Isaac","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"234bb659fe4997c2","title":"AutoLab-SAI-SJTU/GE2EAD: Collects papers on autonomous driving E2E learning and VLM/VLA, with organized research branches and trends in these fields.","url":"https://github.com/AutoLab-SAI-SJTU/GE2EAD","domain":"github.com","date":1765769913,"tags":["VLA","Autonomous Driving","LLM / VLM"],"primary_tag":"VLA"},{"id":"e6a02eaf6411845d","title":"CS25: Transformers United V5 | CS25","url":"https://web.stanford.edu/class/cs25/","domain":"web.stanford.edu","date":1765766332,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"29094a1a5b4187e6","title":"CS146S: The Modern Software Developer - Stanford University","url":"https://themodernsoftware.dev/","domain":"themodernsoftware.dev","date":1765766324,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"29825e1ad16188eb","title":"huggingface/trl: Train transformer language models with reinforcement learning.","url":"https://github.com/huggingface/trl","domain":"github.com","date":1765510769,"tags":["Reinforcement Learning","Foundation Model"],"primary_tag":"Reinforcement Learning"},{"id":"9192597291704d3a","title":"trl/trl/trainer/ppo_trainer.py at main · huggingface/trl","url":"https://github.com/huggingface/trl/blob/main/trl/trainer/ppo_trainer.py","domain":"github.com","date":1765510414,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"be258165fc544326","title":"NVIDIA/cutile-python: cuTile is a programming model for writing parallel kernels for NVIDIA GPUs","url":"https://github.com/NVIDIA/cutile-python","domain":"github.com","date":1765105500,"tags":["NVIDIA / Isaac","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"917920113166bef6","title":"NVIDIA Advances Open Model Development for Digital and Physical AI | NVIDIA Blog","url":"https://blogs.nvidia.com/blog/neurips-open-source-digital-physical-ai/","domain":"blogs.nvidia.com","date":1765041734,"tags":["NVIDIA / Isaac","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"1e70d9d3168f3c3e","title":"Alpamayo-R1: Bridging Reasoning and Action Prediction for Generalizable Autonomous Driving in the Long Tail | Research","url":"https://research.nvidia.com/publication/2025-10_alpamayo-r1","domain":"research.nvidia.com","date":1765041732,"tags":["Autonomous Driving","NVIDIA / Isaac"],"primary_tag":"Autonomous Driving"},{"id":"3a37b07ec88bb4b1","title":"NVlabs/alpasim","url":"https://github.com/NVlabs/alpasim","domain":"github.com","date":1765041723,"tags":["NVIDIA / Isaac","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"cbe849c30611e928","title":"How to Think About GPUs | How To Scale Your Model","url":"https://jax-ml.github.io/scaling-book/gpus/","domain":"jax-ml.github.io","date":1764569980,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"540412c5f63649ad","title":"Architecture overview - Autoware Documentation","url":"https://autowarefoundation.github.io/autoware-documentation/main/design/autoware-architecture/","domain":"autowarefoundation.github.io","date":1764322540,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"514633264481ba66","title":"Autoware—概述 | 闫金钢的Blog","url":"https://yanjingang.com/blog/?p=8701","domain":"yanjingang.com","date":1764322474,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"a8c1df5fc15fec09","title":"自动驾驶VLA，从EMMA看感知决策新范式","url":"https://mp.weixin.qq.com/s/ONngJUDDYT51LCtjDGzALQ","domain":"mp.weixin.qq.com","date":1764215824,"tags":["Autonomous Driving","Perception"],"primary_tag":"Autonomous Driving"},{"id":"668d36e4c2136c04","title":"Foxglove Visualization — Isaac ROS","url":"https://nvidia-isaac-ros.github.io/concepts/visualization/foxglove.html","domain":"nvidia-isaac-ros.github.io","date":1764135584,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"0cd92b018339acc0","title":"perceptor_diagram.png (2346×1404)","url":"https://media.githubusercontent.com/media/NVIDIA-ISAAC-ROS/.github/release-3.1/resources/isaac_ros_docs/repositories_and_packages/isaac_perceptor/perceptor_diagram.png/","domain":"media.githubusercontent.com","date":1764126139,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"d5ea3ee4bf4f18d3","title":"Repositories and Packages — Isaac ROS","url":"https://nvidia-isaac-ros.github.io/repositories_and_packages/index.html","domain":"nvidia-isaac-ros.github.io","date":1764126120,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"2c77c1d7efaea34d","title":"knightnemo/Awesome-World-Models: A Curated List of Awesome Works in World Modeling, Aiming to Serve as a One-stop Resource for Researchers, Practitioners, and Enthusiasts Interested in World Modeling.","url":"https://github.com/knightnemo/Awesome-World-Models","domain":"github.com","date":1764124353,"tags":["World Model","Foundation Model"],"primary_tag":"World Model"},{"id":"8b715380e419f591","title":"自动驾驶控制与规划 - 深蓝学院 - 专注人工智能与机器人的学习平台","url":"https://www.shenlanxueyuan.com/course/759?source=1","domain":"shenlanxueyuan.com","date":1763135481,"tags":["Autonomous Driving","Tutorial / Course"],"primary_tag":"Autonomous Driving"},{"id":"6acea09076e7e2b9","title":"NVIDIA-ISAAC-ROS/isaac_ros_dnn_inference: NVIDIA-accelerated DNN model inference ROS 2 packages using NVIDIA Triton/TensorRT for both Jetson and x86_64 with CUDA-capable GPU","url":"https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_dnn_inference","domain":"github.com","date":1762958979,"tags":["NVIDIA / Isaac","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"8029c6eba38f183f","title":"NVIDIA-ISAAC-ROS/isaac_ros_examples: Examples of using Isaac ROS GEMs together","url":"https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_examples","domain":"github.com","date":1762958979,"tags":["NVIDIA / Isaac","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"b3bf9c12067f99d4","title":"NVIDIA-ISAAC-ROS/isaac_ros_jetson: Jetson support packages and tooling","url":"https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_jetson","domain":"github.com","date":1762958978,"tags":["NVIDIA / Isaac","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"09fda4e53bb1b25c","title":"NVIDIA-ISAAC-ROS/isaac_manipulator: Arm manipulation workflows","url":"https://github.com/NVIDIA-ISAAC-ROS/isaac_manipulator","domain":"github.com","date":1762958977,"tags":["NVIDIA / Isaac","Robot Manipulation","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"a6c353ffd4d31b7a","title":"NVIDIA-ISAAC-ROS/isaac_perceptor: Perception workflows","url":"https://github.com/NVIDIA-ISAAC-ROS/isaac_perceptor","domain":"github.com","date":1762958975,"tags":["Perception","NVIDIA / Isaac","Foundation Model"],"primary_tag":"Perception"},{"id":"1287b963739adb1f","title":"Blogs — isaac_ros_docs documentation","url":"https://nvidia-isaac-ros.github.io/v/release-3.1/blog/index.html#","domain":"nvidia-isaac-ros.github.io","date":1762937255,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"7c6830c4e97122ba","title":"智能驾驶系统-百度智能驾驶解决方案及汽车智能化产品-百度Apollo|Baidu阿波罗","url":"https://www.apollo.auto/apollo-self-driving","domain":"apollo.auto","date":1762920475,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"817120ef4c23cda1","title":"Apollo开发者社区","url":"https://apollo.baidu.com/","domain":"apollo.baidu.com","date":1762920469,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"f08e41dcbe3f001a","title":"Apollo开发者社区","url":"https://apollo.baidu.com/community/article","domain":"apollo.baidu.com","date":1762837379,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"05f8efc3ca4da6ec","title":"Apollo开发者社区_公开课","url":"https://apollo.baidu.com/community/public-course","domain":"apollo.baidu.com","date":1762837370,"tags":["Tutorial / Course"],"primary_tag":"Tutorial / Course"},{"id":"145058cadd168650","title":"星火第二讲——Apollo调试与仿真实践！_Apollo开发者社区","url":"https://apollo.baidu.com/community/article/85","domain":"apollo.baidu.com","date":1762829580,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"7b4551be616e2528","title":"autowarefoundation/autoware: Autoware - the world's leading open-source software project for autonomous driving","url":"https://github.com/autowarefoundation/autoware","domain":"github.com","date":1762829071,"tags":["Autonomous Driving","Foundation Model"],"primary_tag":"Autonomous Driving"},{"id":"989ae9b3bd97ff6f","title":"Apollo开发者社区","url":"https://apollo.baidu.com/community/company-solution","domain":"apollo.baidu.com","date":1762760949,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"c8ae06d9fad0b990","title":"Apollo开发者社区_Apollo课程","url":"https://apollo.baidu.com/community/course","domain":"apollo.baidu.com","date":1762760948,"tags":["Tutorial / Course"],"primary_tag":"Tutorial / Course"},{"id":"69f88d9d228b1b82","title":"ApolloAuto/apollo: An open autonomous driving platform","url":"https://github.com/ApolloAuto/apollo?tab=readme-ov-file","domain":"github.com","date":1762760943,"tags":["Autonomous Driving","Foundation Model"],"primary_tag":"Autonomous Driving"},{"id":"1ce5785a1ce614ed","title":"Alpamayo-R1: Bridging Reasoning and Action Prediction for Generalizable Autonomous Driving in the Long Tail | Research","url":"https://research.nvidia.com/publication/2025-10_alpamayo-r1?utm_source=chatgpt.com","domain":"research.nvidia.com","date":1762758024,"tags":["Autonomous Driving","NVIDIA / Isaac"],"primary_tag":"Autonomous Driving"},{"id":"ca8f9a16cbbc0a6d","title":"Generalist - Blog","url":"https://generalistai.com/blog/nov-04-2025-GEN-0","domain":"generalistai.com","date":1762757667,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"0c6ceb8da0d6e7f2","title":"The Local Optimum of Autonomy. And the evolution to AV 3.0 | by Patrick Langechuan Liu | Data Science Collective | Nov, 2025 | Medium","url":"https://medium.com/data-science-collective/the-local-optimum-of-autonomy-de1969b77769","domain":"medium.com","date":1762756672,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"02046c90a7d2d3c0","title":"‌﻿‬⁣‬​​⁣‍‍⁣⁣‬​⁤​⁣⁤⁢​‬​⁤​‍‌​⁢​⁢‍⁢‌​​​⁣​⁡‍​⁣​﻿⁡⁣‍⁣‌⁣wheelos开发流程 - 飞书云文档","url":"https://fcn5tm1hmy9p.feishu.cn/wiki/XdlSwmdLiiDXBdkuF9qcwKFun2d?fromScene=spaceOverview","domain":"fcn5tm1hmy9p.feishu.cn","date":1762660777,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"962e025c959dd1db","title":"(8 封私信 / 59 条消息) 英伟达驱动版本 、CUDA 和 cuDnn 之间版本的关系是怎样的？ - 知乎","url":"https://www.zhihu.com/question/325872631/answer/3204322891","domain":"zhihu.com","date":1762660725,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"eccf297df0ca05e6","title":"40系显卡配置Apollo9.0-CSDN博客","url":"https://blog.csdn.net/m0_55127902/article/details/142834134","domain":"blog.csdn.net","date":1762660260,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"8dd3427507bdc341","title":"40系列显卡新镜像支持_Apollo开发者社区","url":"https://apollo.baidu.com/community/article/1212","domain":"apollo.baidu.com","date":1762660132,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"0d9554b8ac289314","title":"Apollo开发者社区","url":"https://apollo.baidu.com/community/hardware","domain":"apollo.baidu.com","date":1762659962,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"18296346e67356cd","title":"‌​⁣⁢​‍⁣‌​‍​‍​​‬⁡‌​﻿⁢‌​‍​‌‬⁡⁢⁢​‬‬​‍⁡‬‬‌‬⁡‬‬⁢⁢​‌‍‍​‬wheelos设计文档 - 飞书云文档","url":"https://fcn5tm1hmy9p.feishu.cn/wiki/J5ujwMD44iz6IlkD7etcFfrinZf?fromScene=spaceOverview","domain":"fcn5tm1hmy9p.feishu.cn","date":1762478179,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"85fa6d715fcd3812","title":"白话文强化学习PPO的前生今世：策略梯度与PPO原理解读","url":"https://mp.weixin.qq.com/s/2U5ANH7ixu7NJZ8wwq_1cg","domain":"mp.weixin.qq.com","date":1762398509,"tags":["Reinforcement Learning"],"primary_tag":"Reinforcement Learning"},{"id":"4c9e6c4fcbe0563d","title":"SenseTime-FVG/OpenDWM: An open source code repository of driving world models, with training, inferencing, evaluation tools, and pretrained checkpoints.","url":"https://github.com/SenseTime-FVG/OpenDWM","domain":"github.com","date":1762323488,"tags":["World Model","Foundation Model"],"primary_tag":"World Model"},{"id":"cf1fb8973c76776d","title":"LiAutoAD","url":"https://github.com/LiAutoAD","domain":"github.com","date":1762219355,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"c715917b16b8db12","title":"nvidia/PhysicalAI-Autonomous-Vehicles · Datasets at Hugging Face","url":"https://huggingface.co/datasets/nvidia/PhysicalAI-Autonomous-Vehicles","domain":"huggingface.co","date":1762164904,"tags":["NVIDIA / Isaac"],"primary_tag":"NVIDIA / Isaac"},{"id":"45931c944f25765f","title":"AevaScenes – World's Longest-Range FMCW LiDAR Dataset","url":"https://scenes.aeva.com/","domain":"scenes.aeva.com","date":1762164796,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"b19a9cdd60fdacec","title":"强化学习的on/off-policy和on/offline","url":"https://mp.weixin.qq.com/s/lE4v1cF2hI3pSJBxlS13Cw","domain":"mp.weixin.qq.com","date":1762147700,"tags":["Reinforcement Learning"],"primary_tag":"Reinforcement Learning"},{"id":"9d60aa343f6dff34","title":"‍‬‌⁤‌‌‬﻿‌‬​‌​⁤﻿⁣⁡⁡⁣⁡⁤⁢⁤‍‌⁤​⁣​‍‌​‬​‍‌﻿﻿​‍⁤​⁢﻿⁢⁡​‬﻿⁢ACR2025 Isaac Sim / Isaac Lab Tutorial - 飞书云文档","url":"https://iyrna6v2lz.feishu.cn/wiki/Zjhbw2ieAibcLMkZkaBcN5FxnaH","domain":"iyrna6v2lz.feishu.cn","date":1762146964,"tags":["NVIDIA / Isaac","Simulation","Tutorial / Course"],"primary_tag":"NVIDIA / Isaac"},{"id":"c7c9dae9640a5e12","title":"Why is Behavior Prediction Important for Autonomous Driving? | Motional","url":"https://motional.com/news/why-behavior-prediction-important-autonomous-driving","domain":"motional.com","date":1762009347,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"f3ab0c763a58bc90","title":"一文看懂主流深度测距技术：iToF、dToF、结构光、主动双目、被动双目 - 知乎","url":"https://zhuanlan.zhihu.com/p/1914366040730769337","domain":"zhuanlan.zhihu.com","date":1761912742,"tags":["Perception","Blog / Notes"],"primary_tag":"Perception"},{"id":"d5f056b2c2755af5","title":"karpathy/nanochat: The best ChatGPT that $100 can buy.","url":"https://github.com/karpathy/nanochat/tree/master","domain":"github.com","date":1761912725,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"023962c9058a8a3a","title":"Genie 3: A new frontier for world models - Google DeepMind","url":"https://deepmind.google/discover/blog/genie-3-a-new-frontier-for-world-models/","domain":"deepmind.google","date":1761716965,"tags":["World Model"],"primary_tag":"World Model"},{"id":"9eca025710de4703","title":"Robust LLM Training Infrastructure at ByteDance","url":"https://arxiv.org/html/2509.16293v4","domain":"arxiv.org","date":1761648595,"tags":["LLM / VLM"],"primary_tag":"LLM / VLM"},{"id":"04ca04ca89dc512f","title":"isaac-sim/IsaacLab: Unified framework for robot learning built on NVIDIA Isaac Sim","url":"https://github.com/isaac-sim/IsaacLab","domain":"github.com","date":1761648571,"tags":["NVIDIA / Isaac","Simulation","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"9177267b092686cb","title":"X-Square-Robot/wall-x: Building General-Purpose Robots Based on Embodied Foundation Model","url":"https://github.com/X-Square-Robot/wall-x","domain":"github.com","date":1761648566,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"7d5a930f176f1e5d","title":"Qwen3-VL/cookbooks at main · QwenLM/Qwen3-VL","url":"https://github.com/QwenLM/Qwen3-VL/tree/main/cookbooks","domain":"github.com","date":1761648559,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"5f0d6c82bcfc6bf9","title":"用在线强化学习改进 Cursor Tab · Cursor","url":"https://cursor.com/cn/blog/tab-rl","domain":"cursor.com","date":1761535813,"tags":["Reinforcement Learning"],"primary_tag":"Reinforcement Learning"},{"id":"b5e8cd73b910b5f7","title":"Ashok Elluswamy on X: \"Tesla's approach to Autonomy\" / X","url":"https://x.com/aelluswamy/status/1981644831790379245","domain":"x.com","date":1761526369,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"fc50e85af9240326","title":"【强化学习的数学原理】课程：从零开始到透彻理解（完结）_哔哩哔哩_bilibili","url":"https://www.bilibili.com/video/BV1sd4y167NS/?vd_source=64e23f7b7c60789f028d2adf31e0e27f","domain":"bilibili.com","date":1759990099,"tags":["Reinforcement Learning"],"primary_tag":"Reinforcement Learning"},{"id":"98431060deabaead","title":"CS294/194-280 Advanced Large Language Model Agents | CS 294/194-280 Advanced Large Language Model Agents","url":"https://rdi.berkeley.edu/agentic-ai/f25","domain":"rdi.berkeley.edu","date":1757914034,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"27fa325eef3bd02c","title":"apollo.baidu.com/community/Apollo-Homepage-Document","url":"https://apollo.baidu.com/community/Apollo-Homepage-Document?doc=BYFxAcGcC4HpYIbgPYBtXIHQCMEEsATAV0wGNkBbWA5UyRFdZWVBEAU0hFgoIH0adPgCY%2BADwCiAVnEAhAILiAnABZxEgOzK1Y%2BQA51M3ROUnJBsbK2WZoyUdkBhcXoAMhlwDFlARnUXZdzE9AGY%2BBAA2V2ipDViEDQi4ghCEVw0EAg0AMyUIvNd2dmFSTFAKVCA","domain":"apollo.baidu.com","date":1756455823,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"1444798d0b03991d","title":"自动驾驶场景落地更高性能、更低成本、更安全！Apollo开放平台10.0正式发布_Apollo开发者社区","url":"https://apollo.baidu.com/community/article/1282","domain":"apollo.baidu.com","date":1756450301,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"cd0ef8fdeaf18c0e","title":"Apollo开放平台文档 - apollo_perception_obstacles","url":"https://developer.apollo.auto/Apollo-Homepage-Document/Apollo_Doc_CN_6_0/%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F/%E6%84%9F%E7%9F%A5%E6%A8%A1%E5%9D%97/apollo_perception_obstacles/","domain":"developer.apollo.auto","date":1756450276,"tags":["Perception"],"primary_tag":"Perception"},{"id":"649559ceeda4c72d","title":"Apollo开放平台9.0感知工程_Apollo开发者社区","url":"https://apollo.baidu.com/community/article/1235","domain":"apollo.baidu.com","date":1756450265,"tags":["Perception"],"primary_tag":"Perception"},{"id":"344f3cbd74c8e63a","title":"LeRobot - NVIDIA Jetson AI Lab","url":"https://www.jetson-ai-lab.com/lerobot.html","domain":"jetson-ai-lab.com","date":1756430655,"tags":["NVIDIA / Isaac","Imitation Learning"],"primary_tag":"NVIDIA / Isaac"},{"id":"f41f68c5cf0cb6c7","title":"huggingface/lerobot: 🤗 LeRobot: Making AI for Robotics more accessible with end-to-end learning","url":"https://github.com/huggingface/lerobot","domain":"github.com","date":1756378517,"tags":["Imitation Learning","Foundation Model"],"primary_tag":"Imitation Learning"},{"id":"2261dbd20b830df7","title":"NVIDIA/Megatron-LM: Ongoing research training transformer models at scale","url":"https://github.com/NVIDIA/Megatron-LM?tab=readme-ov-file","domain":"github.com","date":1756342597,"tags":["NVIDIA / Isaac","Foundation Model"],"primary_tag":"NVIDIA / Isaac"},{"id":"667756c486cca6a0","title":"How To Scale Your Model","url":"https://jax-ml.github.io/scaling-book/","domain":"jax-ml.github.io","date":1756342492,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"9be5f0257ab834c6","title":"Chongjie-Si/AdaMuon: The official repository for AdaMuon","url":"https://github.com/Chongjie-Si/AdaMuon?tab=readme-ov-file","domain":"github.com","date":1756341901,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"76921a8924a1d21c","title":"karpathy/nanoGPT: The simplest, fastest repository for training/finetuning medium-sized GPTs.","url":"https://github.com/karpathy/nanoGPT","domain":"github.com","date":1756341847,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"636bad2218663755","title":"Chongjie-Si/AdaMuon: The official repository for AdaMuon","url":"https://github.com/Chongjie-Si/AdaMuon","domain":"github.com","date":1756341761,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"71d54fe5b9462ac4","title":"AI | Figure","url":"https://www.figure.ai/ai","domain":"figure.ai","date":1756279162,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"0611d43574dea568","title":"bytedance/GR-1: Code for \"Unleashing Large-Scale Video Generative Pre-training for Visual Robot Manipulation\"","url":"https://github.com/bytedance/GR-1","domain":"github.com","date":1756279159,"tags":["Robot Manipulation","Foundation Model"],"primary_tag":"Robot Manipulation"},{"id":"43c3860d830b086a","title":"Physical-Intelligence/openpi","url":"https://github.com/Physical-Intelligence/openpi","domain":"github.com","date":1756277968,"tags":["VLA","Foundation Model"],"primary_tag":"VLA"},{"id":"e0c7d09a1110653c","title":"OpenDriveVLA：通过大型视觉-语言-动作模型实现端到端自动驾驶","url":"https://zhuanlan.zhihu.com/p/1892249838944510794","domain":"zhuanlan.zhihu.com","date":1756109680,"tags":["VLA","Autonomous Driving","LLM / VLM"],"primary_tag":"VLA"},{"id":"8891f6fc7ba0c66e","title":"Fine-Tuning Vision-Language-Action Models: Optimizing Speed and Success","url":"https://openvla-oft.github.io/","domain":"openvla-oft.github.io","date":1756104083,"tags":["VLA"],"primary_tag":"VLA"},{"id":"8abcc821b0c08d56","title":"Gemini Robotics brings AI into the physical world - Google DeepMind","url":"https://deepmind.google/discover/blog/gemini-robotics-brings-ai-into-the-physical-world/","domain":"deepmind.google","date":1756103622,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"d4d9ce2da6ef25f6","title":"PaLM-E: An embodied multimodal language model","url":"https://research.google/blog/palm-e-an-embodied-multimodal-language-model/","domain":"research.google","date":1756103574,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"a05bbc2680cc9db6","title":"A Careful Examination of Large Behavior Models for Multitask Dexterous Manipulation","url":"https://toyotaresearchinstitute.github.io/lbm1/","domain":"toyotaresearchinstitute.github.io","date":1756103573,"tags":["Robot Manipulation"],"primary_tag":"Robot Manipulation"},{"id":"cb61c489d1333f43","title":"Helix: A Vision-Language-Action Model for Generalist Humanoid Control","url":"https://www.figure.ai/news/helix","domain":"figure.ai","date":1756103122,"tags":["VLA","Humanoid"],"primary_tag":"VLA"},{"id":"1db58aaee7d15906","title":"NVIDIA Isaac GR00T N1: An Open Foundation Model for Humanoid Robots | Research","url":"https://research.nvidia.com/publication/2025-03_nvidia-isaac-gr00t-n1-open-foundation-model-humanoid-robots","domain":"research.nvidia.com","date":1756102936,"tags":["VLA","Humanoid","NVIDIA / Isaac"],"primary_tag":"VLA"},{"id":"f78f677657a4fe00","title":"字节跳动Seed-GR3","url":"https://seed.bytedance.com/zh/GR3","domain":"seed.bytedance.com","date":1756102892,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"365aa48381c6a6c8","title":"Open X-Embodiment: Robotic Learning Datasets and RT-X Models","url":"https://robotics-transformer-x.github.io/","domain":"robotics-transformer-x.github.io","date":1756102885,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"8b9492bdf2be1990","title":"gr2-manipulation.github.io","url":"https://gr2-manipulation.github.io/","domain":"gr2-manipulation.github.io","date":1756090700,"tags":["Robot Manipulation"],"primary_tag":"Robot Manipulation"},{"id":"84e16c57c820866a","title":"openvla/openvla: OpenVLA: An open-source vision-language-action model for robotic manipulation.","url":"https://github.com/openvla/openvla","domain":"github.com","date":1755682425,"tags":["VLA","Robot Manipulation","Foundation Model"],"primary_tag":"VLA"},{"id":"ce8c08500fc6ab98","title":"NAVSIM：让自动驾驶规划评测既真实又全面的新方案！","url":"https://mp.weixin.qq.com/s/fPUfBHcdIKxe_JNG5LBf4Q","domain":"mp.weixin.qq.com","date":1755611735,"tags":["Autonomous Driving"],"primary_tag":"Autonomous Driving"},{"id":"3814836bb8b52055","title":"CS 224R Deep Reinforcement Learning","url":"https://cs224r.stanford.edu/","domain":"cs224r.stanford.edu","date":1754556464,"tags":["Reinforcement Learning"],"primary_tag":"Reinforcement Learning"},{"id":"a83b30f62f8866fd","title":"MAS.S60 How2AI","url":"https://mit-mi.github.io/how2ai-course/spring2025/","domain":"mit-mi.github.io","date":1754407442,"tags":["Tutorial / Course"],"primary_tag":"Tutorial / Course"},{"id":"d9e871b9f8a703ac","title":"Stanford CS336 | Language Modeling from Scratch","url":"https://stanford-cs336.github.io/spring2025/","domain":"stanford-cs336.github.io","date":1754286625,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"e6b8a859f8b42d4e","title":"Syllabus | Large Language Model Systems","url":"https://llmsystem.github.io/llmsystem2025spring/docs/Syllabus","domain":"llmsystem.github.io","date":1754278923,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"f9dff8c9a8d97322","title":"GitHub - OpenBMB/MiniCPM: MiniCPM4: Ultra-Efficient LLMs on End Devices, achieving 5+ speedup on typical end-side chips","url":"https://github.com/OpenBMB/MiniCPM","domain":"github.com","date":1754202814,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"70d85a5e61130540","title":"10-423 + 10-623, Spring 2025","url":"https://www.cs.cmu.edu/~mgormley/courses/10423/schedule.html","domain":"cs.cmu.edu","date":1754124238,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"6da48a27f51d7c9f","title":"CS294-158-SP24 Deep Unsupervised Learning Spring 2024","url":"https://sites.google.com/view/berkeley-cs294-158-sp24/home","domain":"sites.google.com","date":1754124227,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"86e2c498cf95eebb","title":"MIT 6.S978: Deep Generative Models, Fall 2024","url":"https://mit-6s978.github.io/schedule.html","domain":"mit-6s978.github.io","date":1754124209,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"d9251c16fd8e6507","title":"10-414/714: Deep Learning Systems","url":"https://dlsyscourse.org/lectures/","domain":"dlsyscourse.org","date":1754124169,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"5eadd15598024078","title":"Stanford CS 224N | Natural Language Processing with Deep Learning","url":"https://web.stanford.edu/class/cs224n/","domain":"web.stanford.edu","date":1754123299,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"75eec1ebd256e603","title":"Home | DSC 291","url":"https://hao-ai-lab.github.io/dsc291-s24/","domain":"hao-ai-lab.github.io","date":1754098497,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"539fea3cb4bc1a61","title":"Home | CSE 234","url":"https://hao-ai-lab.github.io/cse234-w25/","domain":"hao-ai-lab.github.io","date":1754098483,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"e79b8fd66bc85654","title":"如何使用这本书 - CS自学指南","url":"https://csdiy.wiki/%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/#_3","domain":"csdiy.wiki","date":1754054948,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"4edbb29b62497454","title":"GitHub - HorizonRobotics/HoloMotion","url":"https://github.com/HorizonRobotics/HoloMotion","domain":"github.com","date":1753946075,"tags":["Foundation Model"],"primary_tag":"Foundation Model"},{"id":"e486b20b41ace61c","title":"Flow Matching and Diffusion Models","url":"https://diffusion.csail.mit.edu/","domain":"diffusion.csail.mit.edu","date":1752593891,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"ea2c77484d227687","title":"Intro to LLMs in Executorch — ExecuTorch 0.6 documentation","url":"https://docs.pytorch.org/executorch/stable/llm/getting-started.html","domain":"docs.pytorch.org","date":1752132505,"tags":["LLM / VLM"],"primary_tag":"LLM / VLM"},{"id":"64b8cc73a2f18bc9","title":"Quick Start Guide — MLX 0.26.3 documentation","url":"https://ml-explore.github.io/mlx/build/html/usage/quick_start.html","domain":"ml-explore.github.io","date":1752033464,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"6767262b2a8529d7","title":"(38 封私信 / 6 条消息) 端到端笔记（1）：模块化学习 - 知乎","url":"https://zhuanlan.zhihu.com/p/1924225871234957881","domain":"zhuanlan.zhihu.com","date":1752025184,"tags":["Autonomous Driving","Blog / Notes"],"primary_tag":"Autonomous Driving"},{"id":"bc62078f1a00d5fe","title":"(38 封私信 / 6 条消息) 端到端笔记（2）：diffusion 系列之 Diffusion Planner - 知乎","url":"https://zhuanlan.zhihu.com/p/1925984408785127117","domain":"zhuanlan.zhihu.com","date":1752025181,"tags":["Autonomous Driving","Motion Planning","Blog / Notes"],"primary_tag":"Autonomous Driving"},{"id":"1590329dbb1f8de4","title":"‍‍‌⁤⁣​⁡⁡⁣‍⁡‍⁢​⁤⁡‌⁤⁤⁣​⁡⁡‌​‍⁣​⁡﻿⁡﻿﻿‬​​⁣⁢​‌﻿‍⁣​‬​⁣⁤⁣大语言模型的关键技术 - 飞书云文档","url":"https://v11enp9ok1h.feishu.cn/wiki/L6hPwDyOQiofc6kEyF8cnFWqnNx","domain":"v11enp9ok1h.feishu.cn","date":1751347772,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"4b336d7ec912f0fb","title":"‌‍‬‍﻿⁤‍‌⁤‌⁢﻿⁢‍⁡​⁢⁢⁡⁣⁢⁡﻿⁤⁤‌⁡⁣⁡​﻿​‍‌⁣⁡​‍﻿​​⁢‌​‬⁡‌​‬‌LoRA相关技术及要点 - 飞书云文档","url":"https://v11enp9ok1h.feishu.cn/wiki/UTOzwjQTliLhyYkfEmWcE4hYnSh","domain":"v11enp9ok1h.feishu.cn","date":1751347769,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"53b86fdfa41cc674","title":"再来聊聊强化学习在自动驾驶中的应用 - 知乎","url":"https://zhuanlan.zhihu.com/p/1897764644732528193?share_code=mtq0zxzC84hX&utm_psn=1910788961816774371","domain":"zhuanlan.zhihu.com","date":1748352373,"tags":["Autonomous Driving","Reinforcement Learning","Blog / Notes"],"primary_tag":"Autonomous Driving"},{"id":"08eab8bc101407b7","title":"CS 285","url":"https://rail.eecs.berkeley.edu/deeprlcourse/","domain":"rail.eecs.berkeley.edu","date":1748344876,"tags":["General Tech"],"primary_tag":"General Tech"},{"id":"004e8cb76357548c","title":"动手强化学习","url":"https://hrl.boyuai.com/chapter/intro","domain":"hrl.boyuai.com","date":1748344703,"tags":["Reinforcement Learning"],"primary_tag":"Reinforcement Learning"},{"id":"5634f674bd1e8e92","title":"Imitation Is Not Enough - 在运动规划中克服模仿学习的局限性 - 知乎","url":"https://zhuanlan.zhihu.com/p/717288142","domain":"zhuanlan.zhihu.com","date":1747641490,"tags":["Motion Planning","Imitation Learning"],"primary_tag":"Motion Planning"},{"id":"e89c8b0ac963de54","title":"第一章 强化学习基础","url":"https://datawhalechina.github.io/easy-rl/#/chapter1/chapter1","domain":"datawhalechina.github.io","date":1743069059,"tags":["Reinforcement Learning"],"primary_tag":"Reinforcement Learning"},{"id":"b96ba9070fb93d03","title":"[ICCV 2023] SparseBEV：高性能、全稀疏的纯视觉3D目标检测器 - 知乎","url":"https://zhuanlan.zhihu.com/p/654821380","domain":"zhuanlan.zhihu.com","date":1719885771,"tags":["Autonomous Driving","Perception"],"primary_tag":"Autonomous Driving"},{"id":"406140b325d73055","title":"Sparse4D系列算法：迈向长时序稀疏化3D目标检测的新实践 - 知乎","url":"https://zhuanlan.zhihu.com/p/637096473","domain":"zhuanlan.zhihu.com","date":1719885753,"tags":["Perception"],"primary_tag":"Perception"},{"id":"14686a5fde1f6880","title":"单目3d检测-smoke解析 - 知乎","url":"https://zhuanlan.zhihu.com/p/452676265","domain":"zhuanlan.zhihu.com","date":1716282214,"tags":["Perception","Blog / Notes"],"primary_tag":"Perception"}]};
+const charts = {};
+let selectedTags = new Set();
+let searchQuery = '';
+let activeTab = 'timeline';
+
+function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function chartColors(){
+  return {
+    text: cssVar('--chart-text') || '#e8edf4',
+    muted: cssVar('--chart-muted') || '#8b9cb3',
+    accent: cssVar('--accent') || '#4dabf7',
+    palette: ['#4dabf7','#51cf66','#ff922b','#cc5de8','#20c997','#ffd43b','#74c0fc','#ff6b6b']
+  };
+}
+
+const TAG_HUES = [207,152,28,280,168,340,12,195,45,260,320,85,0,175,55,310,130,240,20,90];
+
+function isDarkTheme(){
+  const t = document.documentElement.getAttribute('data-theme');
+  if (t === 'dark') return true;
+  if (t === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function hashTag(name){
+  let h = 0;
+  for (let i = 0; i < name.length; i++) {
+    h = ((h << 5) - h) + name.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+function tagColor(name){
+  const hue = TAG_HUES[hashTag(name) % TAG_HUES.length];
+  const dark = isDarkTheme();
+  if (dark) {
+    return {
+      bg: 'hsla('+hue+',72%,52%,0.18)',
+      bgStrong: 'hsla('+hue+',72%,52%,0.32)',
+      text: 'hsl('+hue+',78%,74%)',
+      border: 'hsla('+hue+',65%,58%,0.5)',
+      solid: 'hsl('+hue+',68%,58%)'
+    };
+  }
+  return {
+    bg: 'hsla('+hue+',65%,42%,0.12)',
+    bgStrong: 'hsla('+hue+',65%,42%,0.22)',
+    text: 'hsl('+hue+',58%,30%)',
+    border: 'hsla('+hue+',55%,38%,0.4)',
+    solid: 'hsl('+hue+',55%,42%)'
+  };
+}
+
+function sidebarTagStyle(name, selected){
+  const c = tagColor(name);
+  if (selected) {
+    return 'background:'+c.bgStrong+';color:'+c.text+';border-color:'+c.border;
+  }
+  return 'border-left:3px solid '+c.border+';padding-left:7px';
+}
+
+function monthKey(ts){
+  if (!ts) return null;
+  const d = new Date(ts * 1000);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+function matchesSearch(it, q){
+  if (!q) return true;
+  const hay = [it.title, it.url, it.domain, (it.tags||[]).join(' ')].join(' ').toLowerCase();
+  return hay.includes(q);
+}
+
+function searchFilteredItems(){
+  const q = searchQuery.trim().toLowerCase();
+  return DATA.items.filter(it => matchesSearch(it, q));
+}
+
+function filteredItems(){
+  const q = searchQuery.trim().toLowerCase();
+  return DATA.items.filter(it => {
+    if (selectedTags.size) {
+      const tags = it.tags || [];
+      if (!tags.some(t => selectedTags.has(t))) return false;
+    }
+    return matchesSearch(it, q);
+  });
+}
+
+function countTags(items){
+  const m = new Map();
+  items.forEach(it => (it.tags||[]).forEach(t => m.set(t, (m.get(t)||0)+1)));
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+}
+
+function updateStats(items){
+  document.getElementById('stat-total').textContent = items.length;
+  document.getElementById('stat-tags').textContent = countTags(items).length;
+  document.getElementById('list-count').textContent = items.length + ' 条收藏';
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function highlight(text, q){
+  if (!q) return esc(text);
+  const i = String(text).toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return esc(text);
+  return esc(text.slice(0,i))+'<span class="highlight">'+esc(text.slice(i,i+q.length))+'</span>'+esc(text.slice(i+q.length));
+}
+
+function switchToTab(tabName){
+  activeTab = tabName;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tabName));
+  document.querySelectorAll('.tab-content').forEach(p=>p.classList.toggle('active', p.id==='tab-'+tabName));
+}
+
+function toggleTag(tag, opts){
+  const fromSidebar = opts && opts.fromSidebar;
+  if (!tag) {
+    selectedTags.clear();
+  } else if (fromSidebar) {
+    selectedTags.clear();
+    selectedTags.add(tag);
+    switchToTab('list');
+  } else if (selectedTags.has(tag)) {
+    selectedTags.delete(tag);
+  } else {
+    selectedTags.add(tag);
+  }
+  refresh();
+  if (fromSidebar) setTimeout(()=>Object.values(charts).forEach(ch=>{try{ch.resize();}catch(e){}}),50);
+}
+
+function renderSidebar(){
+  const nav = document.getElementById('sidebar-tags');
+  const items = searchFilteredItems();
+  const counts = countTags(items);
+  let html = `<button type="button" class="sidebar-tag sidebar-tag-all${selectedTags.size?'':' selected'}" data-tag=""><span class="tag-name">全部</span><span class="cnt">${items.length}</span></button>`;
+  counts.forEach(([name,cnt])=>{
+    const sel = selectedTags.has(name) ? ' selected' : '';
+    const style = sidebarTagStyle(name, !!sel);
+    html += `<button type="button" class="sidebar-tag${sel}" data-tag="${esc(name)}" style="${style}"><span class="tag-name">${esc(name)}</span><span class="cnt">${cnt}</span></button>`;
+  });
+  nav.innerHTML = html;
+  nav.querySelectorAll('.sidebar-tag').forEach(btn=>{
+    btn.onclick = ()=> toggleTag(btn.dataset.tag || '', {fromSidebar:true});
+  });
+}
+
+function fmtDate(ts){
+  if (!ts) return '—';
+  const d = new Date(ts * 1000);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function renderList(items){
+  const sort = document.getElementById('sort-select').value;
+  const sorted = items.slice();
+  if (sort === 'date-desc') sorted.sort((a,b)=>(b.date||0)-(a.date||0));
+  else if (sort === 'date-asc') sorted.sort((a,b)=>(a.date||0)-(b.date||0));
+  else if (sort === 'title') sorted.sort((a,b)=>a.title.localeCompare(b.title,'zh'));
+  const q = searchQuery.trim();
+  const list = document.getElementById('fav-list');
+  if (!sorted.length){ list.innerHTML = '<div class="empty-state">没有匹配的收藏</div>'; return; }
+  list.innerHTML = sorted.map(it=>{
+    const tagHtml = (it.tags||[]).map(t=>{
+      const c = tagColor(t);
+      return `<span class="badge tag" data-tag="${esc(t)}" style="background:${c.bg};color:${c.text};border-color:${c.border}">${highlight(t,q)}</span>`;
+    }).join('');
+    return `<div class="fav-card">
+      <div class="fav-title"><a href="${esc(it.url)}" target="_blank" rel="noopener">${highlight(it.title,q)}</a></div>
+      <div class="fav-meta">
+        ${tagHtml}
+        <span>${esc(it.domain)}</span>
+        <span>${fmtDate(it.date)}</span>
+      </div></div>`;
+  }).join('');
+  list.querySelectorAll('.badge.tag').forEach(b=>{
+    b.onclick = (e)=>{
+      e.preventDefault();
+      toggleTag(b.dataset.tag);
+    };
+  });
+}
+
+function baseChartOption(){
+  const c = chartColors();
+  return { backgroundColor:'transparent', textStyle:{color:c.text}, color:c.palette };
+}
+function ensureChart(id){
+  const el = document.getElementById(id);
+  if (!el) return null;
+  if (!charts[id]) charts[id] = echarts.init(el);
+  return charts[id];
+}
+
+function renderTimelineCharts(items){
+  const c = chartColors();
+  const dated = items.filter(it=>it.date);
+  const tagCounts = countTags(items).slice(0,15);
+  const byMonth = new Map();
+  dated.forEach(it=>{
+    const m = monthKey(it.date);
+    if (m) byMonth.set(m, (byMonth.get(m)||0)+1);
+  });
+  const months = [...byMonth.keys()].sort();
+
+  ensureChart('chart-tags-bar').setOption(Object.assign(baseChartOption(), {
+    tooltip:{trigger:'axis'},
+    grid:{left:120,right:20,top:10,bottom:10},
+    xAxis:{type:'value', axisLabel:{color:c.muted}, splitLine:{lineStyle:{color:c.muted,opacity:.12}}},
+    yAxis:{type:'category', data:tagCounts.map(x=>x[0]).reverse(), axisLabel:{color:c.muted,fontSize:11}},
+    series:[{type:'bar', data:tagCounts.map(x=>x[1]).reverse(), itemStyle:{
+      color: p=> tagColor(tagCounts.map(x=>x[0]).reverse()[p.dataIndex]).solid,
+      borderRadius:[0,4,4,0]
+    }}]
+  }), true);
+
+  ensureChart('chart-timeline').setOption(Object.assign(baseChartOption(), {
+    tooltip:{trigger:'axis'},
+    grid:{left:45,right:15,top:10,bottom:50},
+    xAxis:{type:'category', data:months, axisLabel:{color:c.muted,rotate:35,fontSize:10}},
+    yAxis:{type:'value', axisLabel:{color:c.muted}, splitLine:{lineStyle:{color:c.muted,opacity:.12}}},
+    series:[{type:'line', smooth:true, data:months.map(m=>byMonth.get(m)), areaStyle:{color:'rgba(77,171,247,.15)'}, lineStyle:{color:c.accent,width:2}, itemStyle:{color:c.accent}}]
+  }), true);
+
+  const topTags = tagCounts.map(x=>x[0]);
+  const matrix = new Map();
+  let maxVal = 1;
+  dated.forEach(it=>{
+    const m = monthKey(it.date);
+    if (!m) return;
+    (it.tags||[]).forEach(tag=>{
+      if (!topTags.includes(tag)) return;
+      const k = tag+'\0'+m;
+      matrix.set(k, (matrix.get(k)||0)+1);
+    });
+  });
+  const heatData = [];
+  topTags.forEach((tag,yi)=>{
+    months.forEach((m,xi)=>{
+      const v = matrix.get(tag+'\0'+m)||0;
+      if (v>maxVal) maxVal=v;
+      heatData.push([xi,yi,v]);
+    });
+  });
+
+  ensureChart('chart-tag-density').setOption(Object.assign(baseChartOption(), {
+    tooltip:{position:'top', formatter:p=>{
+      return topTags[p.value[1]]+'<br/>'+months[p.value[0]]+'：'+p.value[2]+' 条';
+    }},
+    grid:{left:130,right:30,top:10,bottom:60},
+    xAxis:{type:'category', data:months, axisLabel:{color:c.muted,rotate:35,fontSize:10}},
+    yAxis:{type:'category', data:topTags, axisLabel:{color:c.muted,fontSize:11}},
+    visualMap:{min:0,max:maxVal,calculable:true,orient:'horizontal',left:'center',bottom:0,
+      inRange:{color:['#1a2332','#243044','#4dabf7','#51cf66','#ffd43b']}, textStyle:{color:c.muted}},
+    series:[{type:'heatmap', data:heatData, label:{show:false}}]
+  }), true);
+}
+
+function renderActiveCharts(items){
+  if (activeTab === 'timeline') renderTimelineCharts(items);
+}
+
+function refresh(){
+  const items = filteredItems();
+  updateStats(items);
+  renderSidebar();
+  renderList(items);
+  renderActiveCharts(items);
+}
+
+function initTheme(){
+  const KEY='fav-theme-mode';
+  const btns=document.querySelectorAll('.theme-btn');
+  function apply(mode){
+    if(mode==='system') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme',mode);
+    btns.forEach(b=>b.classList.toggle('active',b.dataset.themeMode===mode));
+    localStorage.setItem(KEY,mode);
+    Object.values(charts).forEach(ch=>{try{ch.resize();}catch(e){}});
+    refresh();
+  }
+  btns.forEach(b=>b.addEventListener('click',()=>apply(b.dataset.themeMode)));
+  apply(localStorage.getItem(KEY)||'system');
+}
+
+document.getElementById('search').addEventListener('input',e=>{searchQuery=e.target.value; refresh();});
+document.getElementById('sort-select').addEventListener('change',refresh);
+document.getElementById('tabs').addEventListener('click',e=>{
+  const tab=e.target.closest('.tab'); if(!tab) return;
+  switchToTab(tab.dataset.tab);
+  refresh();
+  setTimeout(()=>Object.values(charts).forEach(ch=>{try{ch.resize();}catch(e){}}),50);
+});
+window.addEventListener('resize',()=>Object.values(charts).forEach(ch=>{try{ch.resize();}catch(e){}}));
+
+initTheme();
+refresh();
+</script>
+</body>
+</html>

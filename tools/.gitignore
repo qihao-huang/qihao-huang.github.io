@@ -11,6 +11,7 @@ ENV/
 
 # Local cache & generated runtime data
 .papers_cache.json
+.fav_cache.json
 validation_report.json
 title_fix_report.json
 title_fix_apply_report.json
