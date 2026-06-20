@@ -1,0 +1,43 @@
+{
+  "updated_at": "2026-06-20T04:21:42.320651+00:00",
+  "moved_count": 4,
+  "arxiv_fixed": 0,
+  "entries": [
+    {
+      "library": "auto_ai",
+      "rel_path": "paper-HKU/9/lecture12_hres.pdf",
+      "path": "/Users/qihao-mac-pro/Library/Mobile Documents/com~apple~CloudDocs/docs/papers/auto_ai/paper-HKU/9/lecture12_hres.pdf",
+      "title": "Depth from Stereo",
+      "reason": "lecture_deck",
+      "size": 14610889,
+      "moved_to": "/Users/qihao-mac-pro/Library/Mobile Documents/com~apple~CloudDocs/docs/papers/auto_ai/_excluded/paper-HKU/9/lecture12_hres.pdf"
+    },
+    {
+      "library": "auto_ai",
+      "rel_path": "paper-HKU/depth-survey/lecture12_hres.pdf",
+      "path": "/Users/qihao-mac-pro/Library/Mobile Documents/com~apple~CloudDocs/docs/papers/auto_ai/paper-HKU/depth-survey/lecture12_hres.pdf",
+      "title": "Depth from Stereo",
+      "reason": "lecture_deck",
+      "size": 14610889,
+      "moved_to": "/Users/qihao-mac-pro/Library/Mobile Documents/com~apple~CloudDocs/docs/papers/auto_ai/_excluded/paper-HKU/depth-survey/lecture12_hres.pdf"
+    },
+    {
+      "library": "auto_ai",
+      "rel_path": "paper-general/seg_LiDAR/cvpr17_pointnet_slides.pdf",
+      "path": "/Users/qihao-mac-pro/Library/Mobile Documents/com~apple~CloudDocs/docs/papers/auto_ai/paper-general/seg_LiDAR/cvpr17_pointnet_slides.pdf",
+      "title": "PointNet: Deep Learning on Point Sets for",
+      "reason": "slides_deck",
+      "size": 6561153,
+      "moved_to": "/Users/qihao-mac-pro/Library/Mobile Documents/com~apple~CloudDocs/docs/papers/auto_ai/_excluded/paper-general/seg_LiDAR/cvpr17_pointnet_slides.pdf"
+    },
+    {
+      "library": "auto_ai",
+      "rel_path": "paper-video/V-MOTS/ReMOTS_slides.pdf",
+      "path": "/Users/qihao-mac-pro/Library/Mobile Documents/com~apple~CloudDocs/docs/papers/auto_ai/paper-video/V-MOTS/ReMOTS_slides.pdf",
+      "title": "ReMOTS: Refining Multi-Object Tracking and",
+      "reason": "slides_deck",
+      "size": 1784815,
+      "moved_to": "/Users/qihao-mac-pro/Library/Mobile Documents/com~apple~CloudDocs/docs/papers/auto_ai/_excluded/paper-video/V-MOTS/ReMOTS_slides.pdf"
+    }
+  ]
+}

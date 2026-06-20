@@ -1,1 +1,4 @@
 .DS_Store
+tools/.papers_cache.json
+tools/.venv/
+# snapshots/history.json is intentionally NOT gitignored — it accumulates long-term evolution data
