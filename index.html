@@ -302,9 +302,10 @@
       margin-bottom: 2rem;
       box-shadow: var(--shadow-lg);
       display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 3rem;
+      grid-template-columns: auto auto;
+      gap: 1.5rem;
       align-items: center;
+      justify-content: center;
       animation: fadeIn 0.6s ease;
     }
 
@@ -355,16 +356,17 @@
 
     .social-links {
       display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
+      gap: 0.5rem;
+      flex-wrap: nowrap;
       align-items: center;
     }
 
-    .social-links a {
+    .social-links a,
+    .social-links button {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1.5rem;
+      gap: 0.35rem;
+      padding: 0.55rem 0.75rem;
       background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
       color: white;
       text-decoration: none;
@@ -372,22 +374,74 @@
       font-weight: 500;
       transition: all 0.3s ease;
       box-shadow: var(--shadow);
-      min-height: 44px;
+      min-height: 40px;
+      flex: 0 0 auto;
       cursor: pointer;
       -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
     }
 
-    .social-links a:hover {
+    .social-links a:hover,
+    .social-links button:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
     }
 
-    .email-link {
+    .social-links button {
+      border: 0;
+      font: inherit;
+    }
+
+    .email-link,
+    .wechat-copy {
       color: var(--text-light);
       font-size: 0.9rem;
-      padding: 0.6rem 1.2rem !important;
+      padding: 0.55rem 0.75rem !important;
       background: var(--bg-light) !important;
       color: var(--text-dark) !important;
+    }
+
+    .social-links button.wechat-copy,
+    .social-links button.wechat-copy .wechat-copy-label {
+      font-weight: 400 !important;
+    }
+
+    .wechat-copy {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .wechat-copy::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(34, 197, 94, 0.16);
+      opacity: 0;
+      transform: scale(0.75);
+      transition: opacity 0.28s ease, transform 0.28s ease;
+      pointer-events: none;
+    }
+
+    .wechat-copy.is-copied {
+      background: #dcfce7 !important;
+      color: #166534 !important;
+      animation: copyPop 0.45s ease;
+    }
+
+    .wechat-copy.is-copied::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    @keyframes copyPop {
+      0% {
+        transform: translateY(-2px) scale(1);
+      }
+      45% {
+        transform: translateY(-3px) scale(1.04);
+      }
+      100% {
+        transform: translateY(-2px) scale(1);
+      }
     }
 
     .hero-image {
@@ -432,6 +486,7 @@
       border-radius: 12px;
       transition: all 0.3s ease;
       border-left: 3px solid transparent;
+      font-weight: 400;
     }
 
     .publication-item:hover {
@@ -454,6 +509,12 @@
     .publication-item a:hover {
       color: var(--secondary-color);
       text-decoration: underline;
+    }
+
+    .publication-item .pub-label,
+    .publication-item .pub-sep {
+      color: var(--text-dark);
+      font-weight: 400;
     }
 
     .publication-meta {
@@ -555,11 +616,14 @@
 
       .social-links {
         gap: 0.75rem;
+        flex-wrap: wrap;
       }
 
-      .social-links a {
+      .social-links a,
+      .social-links button {
         font-size: 0.9rem;
         padding: 0.75rem 1rem;
+        min-height: 44px;
         width: 100%;
         justify-content: center;
       }
@@ -659,6 +723,9 @@
           <a href="mailto:qihao.huang@outlook.com" class="email-link">
             <span>📧</span> Email
           </a>
+          <button type="button" class="wechat-copy" data-copy-text="qihao__qihao" aria-label="Copy WeChat ID qihao__qihao">
+            <span aria-hidden="true">💬</span> <span class="wechat-copy-label">WeChat</span>
+          </button>
         </div>
       </div>
       <div class="hero-image">
@@ -704,8 +771,8 @@
 
       <div class="publication-item">
         <div>
-          Auxiliary Patents:
-          <a href="https://patents.google.com/patent/CN120107930A" target="_blank">BEV Obstacle Classification</a>, 
+          <span class="pub-label">Auxiliary Patents:</span>
+          <a href="https://patents.google.com/patent/CN120107930A" target="_blank">BEV Obstacle Classification</a><span class="pub-sep">, </span>
           <a href="https://patents.google.com/patent/CN120259812A" target="_blank">Data Closed-loop System</a>
         </div>
         <div class="tags">
@@ -717,8 +784,8 @@
 
       <div class="publication-item">
         <a href="https://arxiv.org/pdf/2403.05402.pdf" target="_blank">
-          DualBEV: CNN is All You Need in View Transformation / 
-        </a>
+          DualBEV: CNN is All You Need in View Transformation
+        </a><span class="pub-sep"> / </span>
         <a href="https://zhuanlan.zhihu.com/p/684231812" target="_blank">
           BEV Occupancy 0-1 Share
         </a>
@@ -742,11 +809,11 @@
 
       <div class="publication-item">
         <a href="https://zhuanlan.zhihu.com/p/681075174" target="_blank">
-          Doc: Stereo Perception Tech Share  / 
-        </a>
+          Doc: Stereo Perception Tech Share
+        </a><span class="pub-sep"> / </span>
         <a href="https://arxiv.org/pdf/2604.07980" target="_blank">
-          arvix: Object-Centric Stereo Ranging /
-        </a>
+          arvix: Object-Centric Stereo Ranging
+        </a><span class="pub-sep"> / </span>
         <a href="https://qihao-huang.github.io/manuscripts/long_range_bench.html" target="_blank">
           2000m Long Range Benchmark
         </a>
@@ -772,7 +839,7 @@
         <div>
           <a href="https://www.researchgate.net/publication/391976048_The_Effect_of_Advanced_Driver_Assistance_Systems_on_Truck_Drivers'_Defensive_Driving_Behaviors_Insights_from_a_Preliminary_On-Road_Study" target="_blank">
             The Effect of ADAS on Truck Drivers' Defensive Driving Behaviors
-          </a> / 
+          </a><span class="pub-sep"> / </span>
           <a href="https://tjxb.ijournals.cn/jtuns/article/abstract/202406003" target="_blank">(CN)</a>
         </div>
         <div class="tags">
@@ -786,8 +853,8 @@
         <div>
           <a href="https://qihao-huang.github.io/manuscripts/DO3D_2021.pdf" target="_blank">
             Self-supervised Learning of Decomposed Object-wise 3D Motion and Depth from Monocular Videos
-          </a> / 
-          <a href="https://arxiv.org/pdf/2403.05895.pdf" target="_blank">arXiv</a> / 
+          </a><span class="pub-sep"> / </span>
+          <a href="https://arxiv.org/pdf/2403.05895.pdf" target="_blank">arXiv</a><span class="pub-sep"> / </span>
           <a href="https://patents.google.com/patent/CN114612510A" target="_blank">Patent</a>
         </div>
         <div class="tags">
@@ -814,6 +881,18 @@
 
       <!-- 列表视图 -->
       <div id="blog-list">
+        <div class="publication-item">
+          <a href="#blog" class="blog-post-link" data-blog-md="manuscripts/humanoid-motor-stack.md" data-blog-meta="2026-06 · 人形控制栈">
+            人形机器人控制栈入门：从 PD 到 VLA，我们在建什么？
+          </a>
+          <div class="publication-meta">2026-06 · 梳理 PD / WBC / BFM / VLA / WAM、Loco-Manipulation 与 Whole-Body VLA 的分层关系，并结合八篇论文做认知总结</div>
+          <div class="tags">
+            <span class="tag">人形机器人</span>
+            <span class="tag">VLA</span>
+            <span class="tag">运动控制</span>
+          </div>
+        </div>
+
         <div class="publication-item">
           <a href="#blog" class="blog-post-link" data-blog-md="manuscripts/team_hire.md" data-blog-meta="2026-04 · 招聘与面试">
             面试、组建早期团队的一些实践、思考
@@ -889,6 +968,31 @@
       const blogReaderBody = document.getElementById('blog-reader-body');
       const blogReaderStatus = document.getElementById('blog-reader-status');
       const blogReaderBack = document.getElementById('blog-reader-back');
+      const wechatCopy = document.querySelector('.wechat-copy');
+
+      function setWechatCopyState(label, copied) {
+        if (!wechatCopy) return;
+        var labelEl = wechatCopy.querySelector('.wechat-copy-label');
+        if (labelEl) labelEl.textContent = label;
+        wechatCopy.classList.toggle('is-copied', copied);
+      }
+
+      function copyTextToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+          return navigator.clipboard.writeText(text);
+        }
+
+        var input = document.createElement('textarea');
+        input.value = text;
+        input.setAttribute('readonly', '');
+        input.style.position = 'fixed';
+        input.style.opacity = '0';
+        document.body.appendChild(input);
+        input.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(input);
+        return ok ? Promise.resolve() : Promise.reject(new Error('copy failed'));
+      }
 
       function resetBlogReader() {
         if (!blogSection) return;
@@ -984,6 +1088,28 @@
       if (blogReaderBack) {
         blogReaderBack.addEventListener('click', function () {
           resetBlogReader();
+        });
+      }
+
+      if (wechatCopy) {
+        var wechatResetTimer;
+        wechatCopy.addEventListener('click', function () {
+          var wechatId = wechatCopy.getAttribute('data-copy-text') || '';
+          copyTextToClipboard(wechatId)
+            .then(function () {
+              clearTimeout(wechatResetTimer);
+              setWechatCopyState('Copied', true);
+              wechatResetTimer = setTimeout(function () {
+                setWechatCopyState('WeChat', false);
+              }, 1600);
+            })
+            .catch(function () {
+              clearTimeout(wechatResetTimer);
+              setWechatCopyState('Copy failed', false);
+              wechatResetTimer = setTimeout(function () {
+                setWechatCopyState('WeChat', false);
+              }, 1600);
+            });
         });
       }
 
