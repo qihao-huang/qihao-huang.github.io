@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sync homepage Zhihu stats into index.html
+# Sync homepage Zhihu stats into index.html (static snapshot, updated weekly via CI)
 # Usage: ./tools/sync_home.sh [--dry-run]
 set -euo pipefail
 

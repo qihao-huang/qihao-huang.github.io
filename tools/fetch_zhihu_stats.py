@@ -3,7 +3,11 @@
 fetch_zhihu_stats.py — Fetch Zhihu profile stats and update index.html
 
 Fetches voteup (赞同), thanked (喜欢), and favorited (收藏) counts from the
-Zhihu member API and injects them into the homepage stats block.
+Zhihu member API and injects them into the homepage stats block as static HTML.
+Visitors always see the baked-in snapshot; no per-visit API calls.
+
+A GitHub Actions workflow runs this weekly (see .github/workflows/sync-zhihu-stats.yml).
+Manual refresh: ./tools/sync_home.sh
 
 Usage:
   python3 tools/fetch_zhihu_stats.py [--dry-run]
