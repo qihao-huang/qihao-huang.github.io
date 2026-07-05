@@ -432,6 +432,36 @@
       transform: scale(1);
     }
 
+    .zhihu-stats {
+      margin-top: 0.85rem;
+      font-size: 0.72rem;
+      color: #94a3b8;
+      letter-spacing: 0.03em;
+      font-weight: 400;
+      line-height: 1.4;
+      user-select: none;
+    }
+
+    .zhihu-stats a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.25s ease;
+    }
+
+    .zhihu-stats a:hover {
+      color: #64748b;
+    }
+
+    .zhihu-stats .zhihu-stat-val {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+    }
+
+    .zhihu-stats .zhihu-stat-sep {
+      margin: 0 0.42em;
+      opacity: 0.45;
+    }
+
     @keyframes copyPop {
       0% {
         transform: translateY(-2px) scale(1);
@@ -727,6 +757,13 @@
             <span aria-hidden="true">💬</span> <span class="wechat-copy-label">WeChat</span>
           </button>
         </div>
+        <!-- ZHIHU_STATS_START -->
+        <div class="zhihu-stats" aria-label="知乎互动数据">
+          <a href="https://www.zhihu.com/people/quiescencent" target="_blank" rel="noopener noreferrer">
+            <span><span class="zhihu-stat-val">563</span> 赞同</span><span class="zhihu-stat-sep">·</span><span><span class="zhihu-stat-val">87</span> 喜欢</span><span class="zhihu-stat-sep">·</span><span><span class="zhihu-stat-val">1,115</span> 收藏</span>
+          </a>
+        </div>
+        <!-- ZHIHU_STATS_END -->
       </div>
       <div class="hero-image">
         <img src="pics/hqh.png" alt="Qihao Huang">
