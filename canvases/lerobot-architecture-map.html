@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeRobot 具身智能上手地图</title>
+  <meta name="description" content="LeRobot 模型、数据、链路、工具链、仿真与评测的架构上手地图。">
+  <link rel="stylesheet" href="canvas-shared.css">
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="crumb"><a href="../index.html#canvas">← Canvas 目录</a> · <a href="../index.html">首页</a></div>
+      <div class="tiny">Exported from Cursor Canvas · 2026-07</div>
+    </div>
+
+    <h1>LeRobot 具身智能上手地图</h1>
+    <p class="subtitle">模型 · 数据 · 链路 · 工具链 · 仿真 · 评测 — 基于仓库 src/lerobot 与 AGENT_GUIDE 的架构梳理</p>
+
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <hr class="hr">
+    <div id="panels"></div>
+  </div>
+
+  <script>
+    const TABS = [
+      { id: "overview", label: "总览" },
+      { id: "models", label: "模型" },
+      { id: "data", label: "数据" },
+      { id: "pipeline", label: "链路" },
+      { id: "toolchain", label: "工具链" },
+      { id: "sim", label: "仿真" },
+      { id: "eval", label: "评测" },
+      { id: "path", label: "上手路径" },
+    ];
+
+    const HTML = {};
+
+    HTML.overview = `
+      <div class="stack">
+        <div class="callout"><strong>一句话心智模型</strong>
+          LeRobot = 统一观测/动作契约上的「数据集 + 策略 + 仿真/真机 + CLI」。硬件与仿真共用同一套 observation/action 接口；Processor 负责中间变换；Hub 负责数据与模型流通。
+        </div>
+        <div class="grid grid-4">
+          <div class="stat"><div class="v">4</div><div class="l">核心抽象</div></div>
+          <div class="stat"><div class="v">18+</div><div class="l">内置策略</div></div>
+          <div class="stat"><div class="v">10+</div><div class="l">仿真基准</div></div>
+          <div class="stat"><div class="v">15+</div><div class="l">CLI 入口</div></div>
+        </div>
+        <div>
+          <h2>四大抽象</h2>
+          <div class="grid grid-2">
+            <div class="card"><div class="card-h">LeRobotDataset</div><div class="card-b muted">Episode 感知数据集：Parquet（state/action）+ MP4/图像（视觉）+ meta（info/stats/tasks）。可从 Hub 流式加载，也可本地录制后上传。</div></div>
+            <div class="card"><div class="card-h">PreTrainedPolicy</div><div class="card-b muted">所有策略继承同一基类（nn.Module + HubMixin）。通过 factory 懒加载；配置用 draccus ChoiceRegistry 做多态 CLI。</div></div>
+            <div class="card"><div class="card-h">Processor Pipeline</div><div class="card-b muted">可组合的 ProcessorStep：dataset ↔ policy ↔ robot/env 之间做归一化、相对动作、特征映射等。与策略一起序列化到 Hub。</div></div>
+            <div class="card"><div class="card-h">Robot / Env</div><div class="card-b muted">真机 Robot：connect / get_observation / send_action。仿真 Env：Gymnasium + EnvConfig。同一策略可在两边切换部署。</div></div>
+          </div>
+        </div>
+        <div>
+          <h2>端到端闭环</h2>
+          <div class="card"><div class="card-b">
+            <div class="grid grid-5">
+              <div><span class="flow-n">01</span><strong>标定/遥操作</strong><div class="muted">calibrate → teleoperate 验证硬件与相机</div></div>
+              <div><span class="flow-n">02</span><strong>录制数据</strong><div class="muted">record 写入 LeRobotDataset，推到 Hub</div></div>
+              <div><span class="flow-n">03</span><strong>训练策略</strong><div class="muted">train + preprocessor，checkpoint 上 Hub</div></div>
+              <div><span class="flow-n">04</span><strong>仿真/真机评测</strong><div class="muted">eval 或 record --policy.path</div></div>
+              <div><span class="flow-n">05</span><strong>迭代</strong><div class="muted">补数据 / 换策略 / DAgger rollout</div></div>
+            </div>
+          </div></div>
+        </div>
+        <div>
+          <h2>源码地图（src/lerobot/）</h2>
+          <table>
+            <thead><tr><th>目录</th><th>职责</th><th>上手时先看</th></tr></thead>
+            <tbody>
+              <tr><td>policies/</td><td>策略实现 + factory + PreTrainedPolicy</td><td>act/、pretrained.py、factory.py</td></tr>
+              <tr><td>datasets/</td><td>LeRobotDataset 读写、stats、视频解码</td><td>lerobot_dataset.py</td></tr>
+              <tr><td>processor/</td><td>数据变换管线</td><td>pipeline.py</td></tr>
+              <tr><td>robots/ cameras/ motors/ teleoperators/</td><td>硬件抽象层</td><td>robots/robot.py、so_follower/</td></tr>
+              <tr><td>envs/</td><td>仿真与基准 EnvConfig</td><td>configs.py、libero.py</td></tr>
+              <tr><td>scripts/</td><td>CLI 入口</td><td>lerobot_train.py、lerobot_record.py</td></tr>
+              <tr><td>configs/</td><td>TrainPipelineConfig 等 dataclass</td><td>train.py</td></tr>
+              <tr><td>rollout/</td><td>在线采集策略（DAgger 等）</td><td>strategies/</td></tr>
+              <tr><td>rewards/</td><td>奖励模型（SARM/TOPReward/Robometer）</td><td>factory.py</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+
+    HTML.models = `
+      <div class="stack">
+        <div class="callout"><strong>选型原则</strong>
+          先用 ACT 建立可复现基线，再上 VLA。GPU &lt; 8GB 几乎只该用 ACT；语言条件/多任务再考虑 SmolVLA。
+        </div>
+        <div>
+          <h2>策略族谱</h2>
+          <table>
+            <thead><tr><th>类别</th><th>代表模型</th><th>典型用途</th><th>VRAM 体感</th></tr></thead>
+            <tbody>
+              <tr><td>模仿学习 (IL)</td><td>ACT, Diffusion, VQ-BeT, MultiTask DiT</td><td>单任务抓放、轨迹克隆；ACT 是默认起点</td><td>ACT ~1GB；Diffusion ~5GB+</td></tr>
+              <tr><td>VLA</td><td>SmolVLA, π0/π0.5/π0-Fast, GR00T, XVLA, Wall-X, EO-1, EVO1, MolmoAct2</td><td>语言条件、多任务、跨本体迁移</td><td>SmolVLA ~4GB；大 VLA 常需 16GB+</td></tr>
+              <tr><td>强化学习 (RL)</td><td>TD-MPC, HIL-SERL, Gaussian Actor</td><td>在线/人机协同改进；需环境或真机闭环</td><td>视任务而定</td></tr>
+              <tr><td>世界模型</td><td>VLA-JEPA, LingBot-VA, FastWAM</td><td>预测未来表征/视频，辅助规划或预训练</td><td>通常偏重</td></tr>
+              <tr><td>奖励模型</td><td>SARM, TOPReward, Robometer</td><td>从演示/视频估计奖励，服务 RL 或筛选</td><td>中等</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">ACT <span class="pill ok">推荐入门</span></div><div class="card-b">
+            <p class="muted">Action Chunking Transformer：预测一段动作序列，对遥操作噪声鲁棒，训练快、显存低。单任务 50 条干净 episode，目标成功率 &gt;70%。</p>
+            <p>CLI：<strong>--policy.type=act</strong></p>
+          </div></div>
+          <div class="card"><div class="card-h">SmolVLA <span class="pill info">下一步</span></div><div class="card-b">
+            <p class="muted">轻量 VLA，适合语言条件与多任务。默认冻结视觉编码器；解冻 freeze_vision_encoder=false 通常有明显收益。</p>
+            <p>CLI：<strong>--policy.type=smolvla</strong></p>
+          </div></div>
+        </div>
+        <div>
+          <h2>统一接口（你真正要会的 API）</h2>
+          <div class="card"><div class="card-b">
+            <p class="muted">所有策略走同一路径：make_policy → preprocessor → select_action / forward → postprocessor。Hub 上的 checkpoint 通常包含模型权重 + processor 配置。</p>
+            <table>
+              <thead><tr><th>概念</th><th>位置</th><th>作用</th></tr></thead>
+              <tbody>
+                <tr><td>PreTrainedPolicy</td><td>policies/pretrained.py</td><td>训练/推理/推 Hub 的基类</td></tr>
+                <tr><td>PreTrainedConfig</td><td>configs + 各 policy configuration_*</td><td>CLI 可切换的超参</td></tr>
+                <tr><td>make_policy / get_policy_class</td><td>policies/factory.py</td><td>按名字懒加载，避免全量 import</td></tr>
+                <tr><td>PolicyProcessorPipeline</td><td>processor/</td><td>观测归一化、动作相对化等</td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </div>
+        <div>
+          <h2>训练时长经验（单任务 ~50 episodes）</h2>
+          <table>
+            <thead><tr><th>策略</th><th>Batch</th><th>建议 steps</th><th>备注</th></tr></thead>
+            <tbody>
+              <tr><td>act</td><td>8–16</td><td>30k–80k</td><td>多数单任务 &lt;50k 收敛</td></tr>
+              <tr><td>diffusion</td><td>8–16</td><td>80k–150k</td><td>比 ACT 更吃训练步数</td></tr>
+              <tr><td>smolvla</td><td>4–8</td><td>30k–80k</td><td>预训练骨干，收敛快；可解冻视觉</td></tr>
+              <tr><td>pi0 / pi05</td><td>1–4</td><td>30k–80k</td><td>用梯度累积把有效 batch 拉到 ≥16</td></tr>
+            </tbody>
+          </table>
+          <p class="tiny">经验法则：先按 5–10 个 epoch 思考，再换算 steps；缩短训练时同步缩小 scheduler_decay_steps。</p>
+        </div>
+      </div>`;
+
+    HTML.data = `
+      <div class="stack">
+        <div class="callout warn"><strong>数据质量 &gt; 模型技巧</strong>
+          相机能否单独完成任务？灯光是否稳定？策略是否一致？先修采集，再堆参数。失败阶段针对性补 10–20 条 episode，往往比换更大模型更有效。
+        </div>
+        <div>
+          <h2>LeRobotDataset v3 结构</h2>
+          <div class="card"><div class="card-b">
+            <div class="grid grid-3">
+              <div><div class="section-label">meta/</div><strong>info.json · stats.json · tasks.parquet · episodes/</strong><p class="muted">形状、fps、归一化统计、任务语言、episode 索引。Hub 上可先看 meta 再决定是否下视频。</p></div>
+              <div><div class="section-label">data/</div><strong>chunk-*/file-*.parquet</strong><p class="muted">状态、动作、时间戳等表格数据；多 episode 合并进 chunk，利于流式与随机采样。</p></div>
+              <div><div class="section-label">videos/</div><strong>observation.images.*/chunk-*/file-*.mp4</strong><p class="muted">按相机键分目录；解码与 parquet 帧对齐（tolerance_s）。也可用图像代替视频。</p></div>
+            </div>
+          </div></div>
+        </div>
+        <div>
+          <h2>关键特征约定</h2>
+          <table>
+            <thead><tr><th>键模式</th><th>含义</th><th>训练侧注意</th></tr></thead>
+            <tbody>
+              <tr><td>observation.images.*</td><td>相机图像/视频帧</td><td>多视角通常优于单视角；固定机位先做稳</td></tr>
+              <tr><td>observation.state</td><td>关节/本体状态</td><td>与 action 维度、标定一致</td></tr>
+              <tr><td>action</td><td>控制指令（关节/EE）</td><td>相对/绝对动作由 processor 处理</td></tr>
+              <tr><td>task / language</td><td>任务描述</td><td>VLA 必需；录制时 single_task 写清楚</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">采集默认值（首任务）</div><div class="card-b">
+            <table>
+              <thead><tr><th>项</th><th>建议</th></tr></thead>
+              <tbody>
+                <tr><td>Episodes</td><td>先 50，再扩到 100–300</td></tr>
+                <tr><td>时长</td><td>20–45 s / episode</td></tr>
+                <tr><td>Reset</td><td>10 s</td></tr>
+                <tr><td>FPS</td><td>30</td></tr>
+                <tr><td>相机</td><td>前视固定 + 腕部（或先单前视）</td></tr>
+                <tr><td>策略</td><td>同一抓取/接近路径，少犹豫</td></tr>
+              </tbody>
+            </table>
+          </div></div>
+          <div class="card"><div class="card-h">数据工具</div><div class="card-b">
+            <p class="muted">训练前务必可视化：Hub Space visualize_dataset，或本地 lerobot-dataset-viz。</p>
+            <table>
+              <thead><tr><th>命令</th><th>用途</th></tr></thead>
+              <tbody>
+                <tr><td>lerobot-record</td><td>遥操作录制 / 策略 rollout 存盘</td></tr>
+                <tr><td>lerobot-replay</td><td>回放 episode 验标定与动作</td></tr>
+                <tr><td>lerobot-edit-dataset</td><td>删 episode、改特征、合并</td></tr>
+                <tr><td>lerobot-annotate</td><td>标注管线（如语言）</td></tr>
+                <tr><td>lerobot-dataset-viz</td><td>本地可视化</td></tr>
+              </tbody>
+            </table>
+          </div></div>
+        </div>
+        <div>
+          <h2>迭代采集策略</h2>
+          <div class="grid grid-4">
+            <div><span class="flow-n">A</span><strong>约束版任务</strong><div class="muted">单物体、固定位姿、固定相机、单操作员</div></div>
+            <div><span class="flow-n">B</span><strong>快训 ACT</strong><div class="muted">看失败模式，定位是数据还是训练不足</div></div>
+            <div><span class="flow-n">C</span><strong>单轴加多样性</strong><div class="muted">位置 → 光照 → 物体 → 操作员，一次只加一维</div></div>
+            <div><span class="flow-n">D</span><strong>针对性补数</strong><div class="muted">卡在某阶段就专录该阶段 10–20 条</div></div>
+          </div>
+        </div>
+      </div>`;
+
+    HTML.pipeline = `
+      <div class="stack">
+        <div class="callout"><strong>契约是核心</strong>
+          真机与仿真都暴露 observation → action。策略不直接绑硬件；中间靠 Processor 对齐特征名、尺度与坐标系。
+        </div>
+        <div>
+          <h2>控制环（真机）</h2>
+          <div class="card"><div class="card-b">
+            <div class="grid grid-4">
+              <div><span class="flow-n">1</span><strong>Robot.get_observation()</strong><div class="muted">图像 + 关节状态等原始观测</div></div>
+              <div><span class="flow-n">2</span><strong>Preprocessor</strong><div class="muted">resize、归一化、拼 batch、相对动作缓存</div></div>
+              <div><span class="flow-n">3</span><strong>Policy.select_action</strong><div class="muted">输出 PolicyAction（可含 action chunk）</div></div>
+              <div><span class="flow-n">4</span><strong>Postprocessor → send_action</strong><div class="muted">反归一化、绝对化、安全限幅后下发</div></div>
+            </div>
+            <p class="tiny" style="margin-top:0.75rem">源码锚点：robots/robot.py · processor/pipeline.py · policies/factory.py（make_pre_post_processors）</p>
+          </div></div>
+        </div>
+        <div>
+          <h2>训练环</h2>
+          <div class="card"><div class="card-b">
+            <div class="grid grid-2">
+              <div><h3>数据侧</h3><p class="muted">LeRobotDataset → EpisodeAwareSampler → DataLoader（lerobot_collate_fn）→ batch。delta_timestamps 支持多帧历史/未来动作对齐。</p></div>
+              <div><h3>优化侧</h3><p class="muted">TrainPipelineConfig（draccus）驱动 make_policy、optimizer、scheduler、accelerate、wandb、checkpoint → Hub。可选边训边 eval（仿真 env）。</p></div>
+            </div>
+          </div></div>
+        </div>
+        <div>
+          <h2>硬件分层</h2>
+          <table>
+            <thead><tr><th>层</th><th>模块</th><th>职责</th></tr></thead>
+            <tbody>
+              <tr><td>机器人</td><td>robots/</td><td>统一 Robot API；SO-100/101、Koch、LeKiwi、Reachy2、Unitree G1…</td></tr>
+              <tr><td>遥操作</td><td>teleoperators/</td><td>leader 臂、键盘、手柄、手机等 → 动作源</td></tr>
+              <tr><td>电机</td><td>motors/</td><td>Feetech 等总线通信、标定持久化</td></tr>
+              <tr><td>相机</td><td>cameras/</td><td>OpenCV/RealSense 等；录制时挂到 robot.cameras</td></tr>
+              <tr><td>运动学</td><td>robots/*/robot_kinematic_processor.py</td><td>EE↔关节、相对动作、安全边界（SO 系）</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h2>在线 Rollout 策略</h2>
+          <p class="muted">lerobot-rollout 支持多种采集策略，用于人机协同改进数据分布：</p>
+          <table>
+            <thead><tr><th>strategy</th><th>用途</th></tr></thead>
+            <tbody>
+              <tr><td>base / episodic</td><td>标准或按 episode 的策略 rollout</td></tr>
+              <tr><td>dagger</td><td>DAgger：策略执行 + 人类纠正混合</td></tr>
+              <tr><td>highlight / sentry</td><td>高亮失败段或哨兵式干预采集</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+
+    HTML.toolchain = `
+      <div class="stack">
+        <div>
+          <h2>CLI 工具链（按生命周期）</h2>
+          <table>
+            <thead><tr><th>阶段</th><th>命令</th><th>你在做什么</th></tr></thead>
+            <tbody>
+              <tr><td>安装体检</td><td>lerobot-info</td><td>确认 extras、设备、版本</td></tr>
+              <tr><td>硬件发现</td><td>lerobot-find-port / find-cameras / setup-motors / setup-can</td><td>端口、电机 ID、总线</td></tr>
+              <tr><td>标定</td><td>lerobot-calibrate / find-joint-limits</td><td>关节零位与行程</td></tr>
+              <tr><td>遥操作</td><td>lerobot-teleoperate</td><td>不落盘，验证手感与相机</td></tr>
+              <tr><td>采集</td><td>lerobot-record</td><td>写数据集；也可挂 policy 做真机评测</td></tr>
+              <tr><td>回放</td><td>lerobot-replay</td><td>开环回放验动作</td></tr>
+              <tr><td>训练</td><td>lerobot-train / train-tokenizer</td><td>IL/VLA 训练；可选 HF Jobs</td></tr>
+              <tr><td>仿真评测</td><td>lerobot-eval</td><td>LIBERO 等基准 success rate</td></tr>
+              <tr><td>数据运维</td><td>lerobot-edit-dataset / annotate / dataset-viz</td><td>清洗、标注、可视化</td></tr>
+              <tr><td>在线采集</td><td>lerobot-rollout</td><td>DAgger 等策略化采集</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">配置系统</div><div class="card-b">
+            <p class="muted">draccus + dataclass：CLI 参数即配置字段。多态用 @register_subclass("name")，例如 --policy.type=act、--env.type=libero、--robot.type=so101_follower。</p>
+            <p>顶层训练配置：<strong>TrainPipelineConfig</strong></p>
+          </div></div>
+          <div class="card"><div class="card-h">依赖与分发</div><div class="card-b">
+            <p class="muted">pyproject extras 按策略/仿真/硬件拆分（feetech、smolvla、aloha、pusht…）。可选依赖必须懒加载。包管理推荐 uv；模型与数据集走 Hugging Face Hub。</p>
+            <p>浏览器替代 CLI：社区 <strong>LeLab</strong></p>
+          </div></div>
+        </div>
+        <div>
+          <h2>SO-101 最小命令序</h2>
+          <div class="card"><div class="card-b muted">
+            find-port → setup-motors → calibrate → teleoperate → record →（viz）→ train → record --policy.path。同一 robot.id 贯穿标定与后续所有命令。
+          </div></div>
+        </div>
+      </div>`;
+
+    HTML.sim = `
+      <div class="stack">
+        <div class="callout"><strong>Env 设计</strong>
+          EnvConfig（ChoiceRegistry）描述 task、fps、features、features_map；create_envs() 返回 Gymnasium VectorEnv。HubEnvConfig 可从 HF Hub 拉远程 make_env（EnvHub）。
+        </div>
+        <div>
+          <h2>内置 / 集成基准</h2>
+          <table>
+            <thead><tr><th>env.type</th><th>场景</th><th>上手价值</th></tr></thead>
+            <tbody>
+              <tr><td>pusht</td><td>2D 推物</td><td>无臂也能跑通 train→eval</td></tr>
+              <tr><td>aloha</td><td>双臂操作</td><td>经典 IL 复现</td></tr>
+              <tr><td>libero / libero_plus</td><td>桌面操作套件</td><td>VLA 论文常用榜</td></tr>
+              <tr><td>metaworld</td><td>操作技能基准</td><td>多任务泛化</td></tr>
+              <tr><td>robocasa</td><td>厨房场景</td><td>长程家务操作</td></tr>
+              <tr><td>vlabench</td><td>VLA 专项</td><td>语言-动作评测</td></tr>
+              <tr><td>robotwin</td><td>双臂孪生</td><td>双臂协同</td></tr>
+              <tr><td>robomme</td><td>多模态评测</td><td>较新基准</td></tr>
+              <tr><td>isaaclab_arena</td><td>Isaac Lab</td><td>高保真仿真</td></tr>
+              <tr><td>gym_manipulator</td><td>通用操作封装</td><td>自定义 gym 入口</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">无硬件学习路径</div><div class="card-b">
+            <p class="muted">用 Hub 上现成数据集（如 lerobot/aloha_*、pusht）+ 对应 env 做 train/eval，先摸清 policy/processor/config，再碰真机。</p>
+            <p>示例：lerobot-train --policy.type=act --dataset.repo_id=... 然后 lerobot-eval --env.type=pusht</p>
+          </div></div>
+          <div class="card"><div class="card-h">Docker 评测镜像</div><div class="card-b muted">
+            基准常有原生依赖坑。仓库提供 docker/Dockerfile.benchmark.*（libero、metaworld、robocasa、robotwin、vlabench…）。本地装不动时优先容器跑 lerobot-eval。
+          </div></div>
+        </div>
+        <div>
+          <h2>仿真 ↔ 策略特征对齐</h2>
+          <p class="muted">EnvConfig.features / features_map 把 gym 观测映射到策略期望的 observation.* 键；env 还可提供 get_env_processors()（如 LIBERO 专用 step）。换基准时优先检查特征映射，而不是先改网络结构。</p>
+        </div>
+      </div>`;
+
+    HTML.eval = `
+      <div class="stack">
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">lerobot-record + policy <span class="pill">真机</span></div><div class="card-b">
+            <p class="muted">不单独搞一套 eval 协议：用 record 挂 --policy.path，把 rollout 存成 eval_* 数据集，人工或脚本统计成功率。</p>
+            <p>对比：遥操作基线 vs 当前 ckpt vs 旧 ckpt，防止「越训越差」。</p>
+          </div></div>
+          <div class="card"><div class="card-h">lerobot-eval <span class="pill info">仿真</span></div><div class="card-b">
+            <p class="muted">统一脚本：policy.path + env.type + eval.n_episodes / batch_size。建议 ≥50 episodes 估成功率。</p>
+            <p>本地 ckpt：outputs/train/.../checkpoints/&lt;step&gt;/pretrained_model</p>
+          </div></div>
+        </div>
+        <div>
+          <h2>成功标准（实用）</h2>
+          <table>
+            <thead><tr><th>场景</th><th>目标</th><th>未达标时优先查</th></tr></thead>
+            <tbody>
+              <tr><td>单任务抓放，50 条干净数据 + ACT</td><td>&gt;70% 成功率（训练分布）</td><td>数据一致性/相机/灯光，而非换大模型</td></tr>
+              <tr><td>分布外位置/物体</td><td>允许掉点，靠加多样性恢复</td><td>是否一次加了太多变化轴</td></tr>
+              <tr><td>仿真基准复现</td><td>对齐论文/Hub model card</td><td>env 版本、processor、seed、episode 数</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h2>调试信号</h2>
+          <div class="grid grid-3">
+            <div class="card"><div class="card-h">卡在某一阶段</div><div class="card-b muted">专录该阶段 10–20 条；检查该阶段相机是否看得见关键接触点。</div></div>
+            <div class="card"><div class="card-h">抖动/振荡</div><div class="card-b muted">演示犹豫或不一致；重录差 episode；适当加长训练或开动作插值。</div></div>
+            <div class="card"><div class="card-h">无视物体</div><div class="card-b muted">多半是取景/曝光/遮挡问题，不是网络容量问题。</div></div>
+          </div>
+        </div>
+      </div>`;
+
+    HTML.path = `
+      <div class="stack">
+        <div class="callout ok"><strong>先选一条路，再下钻源码</strong>
+          具身智能上手成本在「闭环」而不在「读完所有 VLA 论文」。用最小闭环建立直觉，再扩展模型与基准。
+        </div>
+        <div>
+          <h2>三条主路径</h2>
+          <div class="grid grid-3">
+            <div class="card"><div class="card-h">A · 有 SO-101 <span class="pill ok">优先</span></div><div class="card-b">
+              <p class="muted">标定 → 遥操作 → 录 50 条 → 可视化 → ACT → 真机 record 评测</p>
+              <p class="tiny">文档：AGENT_GUIDE §4、docs/so101、il_robots</p>
+            </div></div>
+            <div class="card"><div class="card-h">B · 无硬件</div><div class="card-b">
+              <p class="muted">Hub 数据集 + ACT/Diffusion + pusht/libero eval；搞懂 config 与 processor</p>
+              <p class="tiny">再读 policies/act 与 datasets/lerobot_dataset.py</p>
+            </div></div>
+            <div class="card"><div class="card-h">C · 读架构</div><div class="card-b">
+              <p class="muted">AGENTS.md → act/ → lerobot_dataset.py → processor/pipeline.py → envs/configs.py</p>
+              <p class="tiny">需要扩展时再看 bring_your_own_policies / EnvHub</p>
+            </div></div>
+          </div>
+        </div>
+        <div>
+          <h2>能力进阶阶梯</h2>
+          <table>
+            <thead><tr><th>阶段</th><th>目标</th><th>产出</th></tr></thead>
+            <tbody>
+              <tr><td>1 闭环</td><td>单任务 ACT 在固定场景成功</td><td>自己的 dataset + Hub policy</td></tr>
+              <tr><td>2 数据工程</td><td>会诊断失败、补数、edit-dataset</td><td>可复现的数据迭代节奏</td></tr>
+              <tr><td>3 多视角/语言</td><td>双相机或 SmolVLA + task 文本</td><td>语言条件策略</td></tr>
+              <tr><td>4 仿真对齐</td><td>LIBERO 等跑通 eval Docker</td><td>可对比的 success rate</td></tr>
+              <tr><td>5 扩展</td><td>自定义 Robot 或 Policy 或 EnvHub</td><td>贡献/私有栈接入 LeRobot</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h2>建议阅读顺序</h2>
+          <table>
+            <thead><tr><th>顺序</th><th>材料</th><th>收获</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>README + AGENT_GUIDE.md</td><td>用户视角全流程与命令</td></tr>
+              <tr><td>2</td><td>AGENTS.md Architecture</td><td>目录职责与开发约定</td></tr>
+              <tr><td>3</td><td>policies/act + datasets/lerobot_dataset.py</td><td>规范实现样板</td></tr>
+              <tr><td>4</td><td>processor/pipeline.py</td><td>理解真机/仿真可互换的关键</td></tr>
+              <tr><td>5</td><td>docs/source 对应 policy/benchmark mdx</td><td>专项细节与复现</td></tr>
+              <tr><td>6</td><td>HF robot-learning-tutorial / 中文 SO-ARM 教程</td><td>动手课与社区经验</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card"><div class="card-h">下一步（需要你补充的信息）</div><div class="card-b muted">
+          目标（真机任务 / 只学仿真 / 读代码）、硬件（有无 SO-101 等）、GPU 显存、是否已有数据集。有了这些可以收敛到一条具体命令清单，而不是同时开所有 VLA。
+        </div></div>
+      </div>`;
+
+    function activate(id) {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("is-active", b.dataset.id === id));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("is-active", p.dataset.id === id));
+      history.replaceState(null, "", "#" + id);
+    }
+
+    const tabsEl = document.getElementById("tabs");
+    const panelsEl = document.getElementById("panels");
+    TABS.forEach((t) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tab-btn";
+      btn.dataset.id = t.id;
+      btn.textContent = t.label;
+      btn.addEventListener("click", () => activate(t.id));
+      tabsEl.appendChild(btn);
+
+      const panel = document.createElement("div");
+      panel.className = "panel";
+      panel.dataset.id = t.id;
+      panel.innerHTML = HTML[t.id];
+      panelsEl.appendChild(panel);
+    });
+
+    const initial = (location.hash || "#overview").slice(1);
+    activate(TABS.some((t) => t.id === initial) ? initial : "overview");
+  </script>
+</body>
+</html>

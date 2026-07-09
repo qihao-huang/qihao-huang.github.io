@@ -1,0 +1,10 @@
+[
+  {
+    "id": "lerobot-architecture-map",
+    "title": "LeRobot 具身智能上手地图",
+    "summary": "模型、数据、链路、工具链、仿真与评测的架构梳理，适合快速建立 LeRobot 心智模型。",
+    "href": "canvases/lerobot-architecture-map.html",
+    "date": "2026-07",
+    "tags": ["LeRobot", "具身智能", "上手"]
+  }
+]
