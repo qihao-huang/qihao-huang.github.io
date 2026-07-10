@@ -1,5 +1,21 @@
 [
   {
+    "id": "lerobot-repo-map",
+    "title": "LeRobot 仓库介绍",
+    "summary": "顶层目录与 src/lerobot 模块地图：teleop → record → dataset → processor → policy → eval/rollout。",
+    "href": "canvases/lerobot-repo-map.html",
+    "date": "2026-07",
+    "tags": ["LeRobot", "仓库", "架构", "CLI"]
+  },
+  {
+    "id": "smolvla-train-eval-pipeline",
+    "title": "SmolVLA Train–Eval 全流程",
+    "summary": "基于真实 LIBERO ds[0]：sample→preprocessor→flow matching MSE，以及 env→select_action→7D step。",
+    "href": "canvases/smolvla-train-eval-pipeline.html",
+    "date": "2026-07",
+    "tags": ["SmolVLA", "LIBERO", "训练", "评测"]
+  },
+  {
     "id": "vla-benchmark-eval-playbook",
     "title": "VLA / IL 评测流程手册",
     "summary": "ACT、SmolVLA、π0/π0.5、GR00T 在 LIBERO 等 benchmark 上的标准评测流程、关键参数与高分误解。",

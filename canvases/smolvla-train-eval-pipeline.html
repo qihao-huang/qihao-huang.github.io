@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>SmolVLA Train–Eval 全流程</title>
+  <meta name="description" content="基于真实 LIBERO ds[0]：SmolVLA 从 sample/env obs 到 flow matching loss 与 7D 闭环动作。">
+  <script src="canvas-theme.js" data-boot></script>
+  <link rel="stylesheet" href="canvas-shared.css">
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="crumb"><a href="../index.html#canvas">← Canvas 目录</a> · <a href="../index.html">首页</a></div>
+      <div class="topbar-actions">
+        <div class="theme-switch" role="group" aria-label="主题切换" title="主题切换">
+          <button type="button" class="theme-btn" data-theme-mode="system">自动</button>
+          <button type="button" class="theme-btn" data-theme-mode="light">浅色</button>
+          <button type="button" class="theme-btn" data-theme-mode="dark">深色</button>
+        </div>
+        <div class="tiny">Exported from Cursor Canvas · 2026-07</div>
+      </div>
+    </div>
+
+    <h1>SmolVLA Train–Eval 全流程</h1>
+    <p class="subtitle">基于真实 LIBERO ds[0]：从 sample / env obs 到 flow matching loss 与 7D 闭环动作</p>
+    <p class="tiny">LeRobot policies/smolvla · HuggingFaceVLA/libero · 对照 smolvla_libero preprocessor</p>
+
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <hr class="hr">
+    <div id="panels"></div>
+  </div>
+
+  <script>
+    const TABS = [
+      { id: "overview", label: "总览" },
+      { id: "train", label: "Train" },
+      { id: "eval", label: "Eval" },
+      { id: "config", label: "配置" },
+      { id: "shapes", label: "形状对照" },
+    ];
+
+    const HTML = {};
+
+    HTML.overview = `
+      <div class="stack">
+        <div class="callout"><strong>一句话</strong>
+          训练：当前帧观测 + 未来 50 步专家动作 → 随机 t 上回归速度场 u_t = noise − a（flow matching MSE）。
+          评测：同一套观测编码 → 从噪声欧拉积分 num_steps 步得到 chunk → 队列逐步吐出反归一化 7D 动作给 env.step。
+        </div>
+        <div class="grid grid-4">
+          <div class="stat"><div class="v">50</div><div class="l">chunk_size（默认）</div></div>
+          <div class="stat"><div class="v">10</div><div class="l">num_steps 去噪</div></div>
+          <div class="stat"><div class="v">7D</div><div class="l">LIBERO 动作</div></div>
+          <div class="stat"><div class="v">8D</div><div class="l">LIBERO 状态</div></div>
+        </div>
+        <div>
+          <h2>两条路径对照</h2>
+          <div class="grid grid-2">
+            <div class="card"><div class="card-h">Train（lerobot-train） <span class="pill">开环</span></div><div class="card-b">
+              <p>sample → preprocessor（image→camera1/2）→ prepare_* → VLAFlowMatching → MSE</p>
+              <p class="muted">指标：loss / eval_loss（hold-out），不是成功率</p>
+              <p class="tiny">入口：scripts/lerobot_train.py → policies/smolvla/modeling_smolvla.py</p>
+            </div></div>
+            <div class="card"><div class="card-h">Eval（lerobot-eval） <span class="pill">闭环</span></div><div class="card-b">
+              <p>env obs → LiberoProcessor → rename/tokenize → select_action queue → unnormalize → env.step</p>
+              <p class="muted">指标：pc_success / success rate</p>
+              <p class="tiny">入口：scripts/lerobot_eval.py → envs/libero.py + processor/env_processor.py</p>
+            </div></div>
+          </div>
+        </div>
+        <div>
+          <h2>端到端骨架</h2>
+          <div class="card"><div class="card-b">
+            <div class="grid grid-5">
+              <div><span class="flow-n">01</span><strong>Dataset / Env</strong><div class="muted">LIBERO demo 或 LiberoEnv 观测</div></div>
+              <div><span class="flow-n">02</span><strong>Rename</strong><div class="muted">image/image2 → camera1/2</div></div>
+              <div><span class="flow-n">03</span><strong>Prepare</strong><div class="muted">resize、pad state/action、tokenize</div></div>
+              <div><span class="flow-n">04</span><strong>VLM + Expert</strong><div class="muted">prefix 条件 + suffix 动作流</div></div>
+              <div><span class="flow-n">05</span><strong>Loss / Action</strong><div class="muted">MSE(u_t,v_t) 或 7D step</div></div>
+            </div>
+          </div></div>
+        </div>
+        <div>
+          <h2>真实样本锚点</h2>
+          <p class="muted">基于 HuggingFaceVLA/libero 的 ds[0]（episodes=[0]，fps=10，ep0 length=214）。task：put the white mug on the left plate and put the yellow and white mug on the right plate</p>
+          <p><span class="pill">image 3×256×256</span> <span class="pill">image2 3×256×256</span> <span class="pill">state 8</span> <span class="pill">action chunk 50×7</span> <span class="pill">tokens ≤48</span></p>
+        </div>
+      </div>`;
+
+    HTML.train = `
+      <div class="stack">
+        <div class="callout"><strong>调用链</strong>
+          DataLoader batch → preprocessor(batch) → policy.forward(batch) → loss
+          （lerobot_train.py → update_policy → SmolVLAPolicy.forward）
+        </div>
+        <div>
+          <h2>1. 样本 → batch</h2>
+          <p class="muted">resolve_delta_timestamps 用 action_delta_indices = range(chunk_size) → action: [0/fps … 49/fps]。单样本带 chunk 后 action 为 (50, 7)；collate 后 B 维加上。</p>
+          <table>
+            <thead><tr><th>字段</th><th>batch 形状（B=2）</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>observation.images.image</td><td>(B, 3, 256, 256)</td><td>agentview，约 [0,1]</td></tr>
+              <tr><td>observation.images.image2</td><td>(B, 3, 256, 256)</td><td>wrist</td></tr>
+              <tr><td>observation.state</td><td>(B, 8)</td><td>eef_pos3 + axisangle3 + gripper2</td></tr>
+              <tr><td>action</td><td>(B, 50, 7)</td><td>chunk_size=50，fps=10</td></tr>
+              <tr><td>action_is_pad</td><td>(B, 50)</td><td>本帧通常全 False</td></tr>
+              <tr><td>task</td><td>list[str] 长度 B</td><td>语言指令</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h2>2. Preprocessor（含相机 rename）</h2>
+          <p class="tiny">路径：policies/smolvla/processor_smolvla.py · make_smolvla_pre_post_processors</p>
+          <table>
+            <thead><tr><th>步骤</th><th>作用</th></tr></thead>
+            <tbody>
+              <tr><td>RenameObservationsProcessorStep</td><td>image→camera1，image2→camera2（smolvla_libero 已写死；从 base 训需 CLI rename_map）</td></tr>
+              <tr><td>AddBatchDimensionProcessorStep</td><td>单样本补 batch 维</td></tr>
+              <tr><td>NewLineTaskProcessorStep</td><td>task 末尾补换行</td></tr>
+              <tr><td>TokenizerProcessorStep</td><td>VLM tokenizer，max_length=48</td></tr>
+              <tr><td>DeviceProcessorStep</td><td>搬到 config.device</td></tr>
+              <tr><td>NormalizerProcessorStep</td><td>VISUAL=IDENTITY；STATE/ACTION=MEAN_STD</td></tr>
+            </tbody>
+          </table>
+          <div class="callout warn"><strong>相机 key 陷阱</strong>
+            LIBERO 数据是 image/image2；smolvla_base 期望 camera1/2/3。不对齐会在视觉特征处直接失败。
+          </div>
+        </div>
+        <div>
+          <h2>3. prepare_* → flow matching MSE</h2>
+          <p class="muted">modeling_smolvla.py：SmolVLAPolicy.forward → prepare_images / prepare_state / prepare_action → VLAFlowMatching.forward</p>
+          <div class="grid grid-2">
+            <div class="card"><div class="card-h">prepare_images</div><div class="card-b muted">resize+pad → (512,512)；[0,1]→[-1,1]。缺相机时若 empty_cameras&gt;0，补全 -1 假图且 mask=0。</div></div>
+            <div class="card"><div class="card-h">prepare_state / prepare_action</div><div class="card-b muted">state pad 8→32；action pad 7→32，得到 (B,50,32)。</div></div>
+          </div>
+          <h3>VLAFlowMatching 核心</h3>
+          <table>
+            <thead><tr><th>符号</th><th>形状 / 定义</th><th>含义</th></tr></thead>
+            <tbody>
+              <tr><td>noise</td><td>(B, 50, 32) ~ N(0,1)</td><td>采样噪声</td></tr>
+              <tr><td>t</td><td>Beta(1.5,1) → (0.001, 0.999)</td><td>插值时间</td></tr>
+              <tr><td>x_t</td><td>t·noise + (1−t)·actions</td><td>噪声动作</td></tr>
+              <tr><td>u_t</td><td>noise − actions</td><td>速度场目标</td></tr>
+              <tr><td>v_t</td><td>action_out_proj(expert_out)</td><td>预测速度</td></tr>
+              <tr><td>loss</td><td>mean MSE(u_t, v_t)</td><td>有效维上平均</td></tr>
+            </tbody>
+          </table>
+          <div class="card"><div class="card-b">
+            <p><strong>调用链（文字）</strong></p>
+            <p class="muted">batch → prepare_* → embed_prefix（VLM 图像+语言+state）→ embed_suffix（noisy action + t）→ SmolVLMWithExpertModel.forward（prefix∥suffix）→ action_out_proj → v_t → MSE(u_t, v_t)</p>
+            <p class="tiny">相关文件：modeling_smolvla.py · smolvlm_with_expert.py · configuration_smolvla.py</p>
+          </div></div>
+        </div>
+      </div>`;
+
+    HTML.eval = `
+      <div class="stack">
+        <div class="callout"><strong>闭环一步</strong>
+          LiberoEnv obs → preprocess_observation → LiberoProcessorStep → policy preprocessor
+          → select_action → postprocessor Unnormalize → env.step(7D)
+        </div>
+        <div>
+          <h2>1. Env obs → processors</h2>
+          <table>
+            <thead><tr><th>阶段</th><th>输入</th><th>输出 / 变换</th></tr></thead>
+            <tbody>
+              <tr><td>LiberoEnv.reset/step</td><td>pixels + robot_state</td><td>HWC uint8；嵌套状态</td></tr>
+              <tr><td>preprocess_observation</td><td>原始 env dict</td><td>observation.images.* CHW float[0,1]</td></tr>
+              <tr><td>LiberoProcessorStep</td><td>图像 + robot_state</td><td>相机 180° 翻转；state=cat(eef,axisangle,gripper)→(B,8)</td></tr>
+              <tr><td>policy preprocessor</td><td>image/image2 + state + task</td><td>rename→camera1/2；tokenize；normalize</td></tr>
+              <tr><td>select_action</td><td>归一化 batch</td><td>每次吐 (B,7) 一步</td></tr>
+              <tr><td>UnnormalizerProcessorStep</td><td>归一化动作</td><td>MEAN_STD 反归一化 → CPU</td></tr>
+              <tr><td>env.step</td><td>numpy 7D</td><td>下一帧 obs / reward / done</td></tr>
+            </tbody>
+          </table>
+          <p class="tiny">代码：scripts/lerobot_eval.py · envs/libero.py · processor/env_processor.py（LiberoProcessorStep）</p>
+        </div>
+        <div>
+          <h2>2. select_action 与 chunk 队列</h2>
+          <div class="grid grid-2">
+            <div class="card"><div class="card-h">队列逻辑</div><div class="card-b">
+              <p>队列空才推理：sample_actions → (B, chunk_size, dim)</p>
+              <p>只把前 n_action_steps 步塞进 deque</p>
+              <p>每次 popleft 吐 1 步给环境</p>
+              <p class="muted">默认 n_action_steps=50：整 chunk 用完再重规划。论文复现常设为 1。</p>
+            </div></div>
+            <div class="card"><div class="card-h">sample_actions 去噪</div><div class="card-b">
+              <p>从噪声 x_t 出发，欧拉积分 num_steps 次（默认 10）</p>
+              <p>dt = −1/num_steps；time 从 1 → 0</p>
+              <p>每步 Expert 预测 v_t，x_t ← x_t + dt·v_t</p>
+              <p class="muted">输出约干净 action chunk (B, 50, 32)，再截到真实动作维 7</p>
+            </div></div>
+          </div>
+        </div>
+        <div>
+          <h2>3. empty_cameras</h2>
+          <p class="muted">configuration_smolvla.validate_features 往 input_features 加 empty_camera_i；运行时 prepare_images 对缺失相机填 -1 图 + mask=0（注意力忽略）。</p>
+          <div class="callout warn"><strong>smolvla_libero 注意</strong>
+            官方权重 empty_cameras=0，但 config 常声明 camera3。batch 只有 camera1/2 时缺的 key 直接跳过。
+            若要强制占满第三路：--policy.empty_cameras=1。
+          </div>
+        </div>
+      </div>`;
+
+    HTML.config = `
+      <div class="stack">
+        <h2>配置旋钮</h2>
+        <p class="tiny">来源：policies/smolvla/configuration_smolvla.py（SmolVLAConfig）</p>
+        <table>
+          <thead><tr><th>配置项</th><th>默认</th><th>影响路径</th></tr></thead>
+          <tbody>
+            <tr><td>chunk_size</td><td>50</td><td>训练 action 时间维；推理噪声/输出 (B,50,max_action_dim)</td></tr>
+            <tr><td>n_action_steps</td><td>50</td><td>队列长度；多久重规划一次（须 ≤ chunk_size）</td></tr>
+            <tr><td>num_steps</td><td>10</td><td>推理去噪步数（训练无关）</td></tr>
+            <tr><td>empty_cameras</td><td>0</td><td>缺相机时补 -1 + mask0</td></tr>
+            <tr><td>resize_imgs_with_padding</td><td>(512,512)</td><td>进 SigLIP 前 resize+pad</td></tr>
+            <tr><td>max_state_dim / max_action_dim</td><td>32 / 32</td><td>短向量右侧零填充（LIBERO 8→32、7→32）</td></tr>
+            <tr><td>tokenizer_max_length</td><td>48</td><td>语言 token 长度</td></tr>
+            <tr><td>normalization_mapping</td><td>VISUAL IDENTITY；STATE/ACTION MEAN_STD</td><td>pre/post processor</td></tr>
+            <tr><td>freeze_vision_encoder</td><td>True</td><td>是否冻视觉编码器</td></tr>
+            <tr><td>train_expert_only</td><td>True</td><td>是否只训 Action Expert</td></tr>
+          </tbody>
+        </table>
+        <h3>相机命名对照</h3>
+        <table>
+          <thead><tr><th>数据 / Env（LIBERO）</th><th>Policy（smolvla_base / smolvla_libero）</th></tr></thead>
+          <tbody>
+            <tr><td>observation.images.image</td><td>observation.images.camera1</td></tr>
+            <tr><td>observation.images.image2</td><td>observation.images.camera2</td></tr>
+            <tr><td>（无第三路）</td><td>config 常有 camera3；缺则跳过，或 empty_cameras=1</td></tr>
+          </tbody>
+        </table>
+        <h3>常用 CLI 片段</h3>
+        <div class="card"><div class="card-h">训练 rename（从 base finetune LIBERO）</div><div class="card-b">
+          <code>--rename_map='{"observation.images.image":"observation.images.camera1","observation.images.image2":"observation.images.camera2"}'</code>
+        </div></div>
+        <div class="card"><div class="card-h">评测关键覆盖</div><div class="card-b">
+          <p>--policy.n_action_steps=1（论文协议常见）</p>
+          <p>--policy.num_steps=10</p>
+          <p>--policy.empty_cameras=1（需要占满第三路时）</p>
+          <p>--env.type=libero · --policy.path=lerobot/smolvla_libero</p>
+        </div></div>
+      </div>`;
+
+    HTML.shapes = `
+      <div class="stack">
+        <div class="callout"><strong>数据来源</strong>
+          真实 LIBERO ds[0]（HuggingFaceVLA/libero，episodes=[0]，delta_timestamps 覆盖 chunk_size=50）。
+          meta：fps=10，total_episodes=1693，ep0 length=214。
+        </div>
+        <h2>单样本（训练前）</h2>
+        <table>
+          <thead><tr><th>key</th><th>shape</th><th>dtype</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>observation.images.image</td><td>(3, 256, 256)</td><td>float32</td><td>agentview，约 [0,1]</td></tr>
+            <tr><td>observation.images.image2</td><td>(3, 256, 256)</td><td>float32</td><td>wrist</td></tr>
+            <tr><td>observation.state</td><td>(8,)</td><td>float32</td><td>eef_pos + axisangle + gripper</td></tr>
+            <tr><td>action（单帧）</td><td>(7,)</td><td>float32</td><td>相对控制 6D + gripper</td></tr>
+            <tr><td>action（+delta）</td><td>(50, 7)</td><td>float32</td><td>chunk_size=50</td></tr>
+            <tr><td>action_is_pad</td><td>(50,)</td><td>bool</td><td>本帧全 False</td></tr>
+            <tr><td>task</td><td>str</td><td>—</td><td>自然语言指令</td></tr>
+          </tbody>
+        </table>
+        <h2>进入 policy 后（B=2 示例）</h2>
+        <table>
+          <thead><tr><th>字段</th><th>形状</th><th>变换</th></tr></thead>
+          <tbody>
+            <tr><td>camera1 / camera2</td><td>(B, 3, 256, 256) → list of (B,3,512,512)</td><td>rename + prepare_images</td></tr>
+            <tr><td>observation.state</td><td>(B, 8) → (B, 32)</td><td>MEAN_STD + pad</td></tr>
+            <tr><td>language.tokens / mask</td><td>(B, 48)</td><td>TokenizerProcessorStep</td></tr>
+            <tr><td>action（训练）</td><td>(B, 50, 7) → (B, 50, 32)</td><td>MEAN_STD + pad</td></tr>
+            <tr><td>noise / x_t / u_t / v_t</td><td>(B, 50, 32)</td><td>flow matching</td></tr>
+            <tr><td>select_action 输出</td><td>(B, 7)</td><td>截断 + unnormalize</td></tr>
+          </tbody>
+        </table>
+        <h2>Train vs Eval 形状心智图</h2>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">Train</div><div class="card-b muted">
+            ds[0]: 3×256×256 ×2 + state8 + action50×7 + task → rename/tokenize/normalize → pad 到 32 维动作空间 → MSE(u_t, v_t) 标量 loss
+          </div></div>
+          <div class="card"><div class="card-h">Eval</div><div class="card-b muted">
+            env pixels + robot_state → LiberoProcessor 拼 8D state → 10 步去噪出 50×32 chunk → 队列吐 7D → env.step
+          </div></div>
+        </div>
+        <hr class="hr">
+        <p class="tiny">关键代码路径：policies/smolvla/modeling_smolvla.py · processor_smolvla.py · configuration_smolvla.py · smolvlm_with_expert.py · envs/libero.py · processor/env_processor.py · scripts/lerobot_train.py · scripts/lerobot_eval.py</p>
+      </div>`;
+
+    function activate(id) {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("is-active", b.dataset.id === id));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("is-active", p.dataset.id === id));
+      history.replaceState(null, "", "#" + id);
+    }
+
+    const tabsEl = document.getElementById("tabs");
+    const panelsEl = document.getElementById("panels");
+    TABS.forEach((t) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tab-btn";
+      btn.dataset.id = t.id;
+      btn.textContent = t.label;
+      btn.addEventListener("click", () => activate(t.id));
+      tabsEl.appendChild(btn);
+
+      const panel = document.createElement("div");
+      panel.className = "panel";
+      panel.dataset.id = t.id;
+      panel.innerHTML = HTML[t.id];
+      panelsEl.appendChild(panel);
+    });
+
+    const initial = (location.hash || "#overview").slice(1);
+    activate(TABS.some((t) => t.id === initial) ? initial : "overview");
+    if (window.CanvasTheme) CanvasTheme.init();
+  </script>
+</body>
+</html>

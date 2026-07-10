@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>LeRobot 仓库介绍</title>
+  <meta name="description" content="LeRobot 顶层目录与 src/lerobot 模块地图：从 teleop 到 eval/rollout 的代码落点。">
+  <script src="canvas-theme.js" data-boot></script>
+  <link rel="stylesheet" href="canvas-shared.css">
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="crumb"><a href="../index.html#canvas">← Canvas 目录</a> · <a href="../index.html">首页</a></div>
+      <div class="topbar-actions">
+        <div class="theme-switch" role="group" aria-label="主题切换" title="主题切换">
+          <button type="button" class="theme-btn" data-theme-mode="system">自动</button>
+          <button type="button" class="theme-btn" data-theme-mode="light">浅色</button>
+          <button type="button" class="theme-btn" data-theme-mode="dark">深色</button>
+        </div>
+        <div class="tiny">Exported from Cursor Canvas · 2026-07</div>
+      </div>
+    </div>
+
+    <h1>LeRobot 仓库介绍</h1>
+    <p class="subtitle">顶层目录与 src/lerobot 模块地图：从 teleop 到 eval/rollout 的代码落点</p>
+    <p class="tiny">基于 main/lerobot 目录结构（约 0.6.1）</p>
+
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <hr class="hr">
+    <div id="panels"></div>
+  </div>
+
+  <script>
+    const TABS = [
+      { id: "overview", label: "总览" },
+      { id: "top", label: "顶层" },
+      { id: "policy", label: "策略学习" },
+      { id: "data", label: "数据" },
+      { id: "hw", label: "真机仿真" },
+      { id: "cli", label: "CLI" },
+    ];
+
+    const HTML = {};
+
+    HTML.overview = `
+      <div class="stack">
+        <div class="callout"><strong>仓库心智模型</strong>
+          LeRobot = 统一观测/动作契约上的「数据集 + Processor + 策略 + 仿真/真机 + CLI」。
+          硬件与仿真共用 observation/action 接口；Hub 负责数据与模型流通。
+        </div>
+        <div class="grid grid-4">
+          <div class="stat"><div class="v">src/</div><div class="l">核心 Python 包</div></div>
+          <div class="stat"><div class="v">18+</div><div class="l">内置策略</div></div>
+          <div class="stat"><div class="v">15+</div><div class="l">CLI 入口</div></div>
+          <div class="stat"><div class="v">10+</div><div class="l">仿真基准</div></div>
+        </div>
+        <div>
+          <h2>端到端心智图</h2>
+          <div class="card"><div class="card-b">
+            <div class="grid grid-6">
+              <div><span class="flow-n">01</span><strong>teleop</strong><div class="muted">遥操作验证硬件与相机</div></div>
+              <div><span class="flow-n">02</span><strong>record</strong><div class="muted">写入 LeRobotDataset</div></div>
+              <div><span class="flow-n">03</span><strong>dataset</strong><div class="muted">Parquet + 视频 + meta</div></div>
+              <div><span class="flow-n">04</span><strong>processor</strong><div class="muted">归一化 / rename / tokenize</div></div>
+              <div><span class="flow-n">05</span><strong>policy</strong><div class="muted">train → checkpoint</div></div>
+              <div><span class="flow-n">06</span><strong>eval / rollout</strong><div class="muted">仿真闭环或真机部署</div></div>
+            </div>
+          </div></div>
+          <p class="muted">teleop → record → dataset → processor → policy → eval/rollout</p>
+        </div>
+        <div>
+          <h2>src/lerobot 速览</h2>
+          <table>
+            <thead><tr><th>目录</th><th>职责</th><th>先看</th></tr></thead>
+            <tbody>
+              <tr><td>policies/</td><td>策略实现 + factory + PreTrainedPolicy</td><td>act/、smolvla/、pretrained.py</td></tr>
+              <tr><td>datasets/</td><td>LeRobotDataset 读写、stats、视频</td><td>lerobot_dataset.py</td></tr>
+              <tr><td>processor/</td><td>可组合 ProcessorStep 管线</td><td>pipeline.py、env_processor.py</td></tr>
+              <tr><td>envs/</td><td>仿真 EnvConfig（LIBERO 等）</td><td>libero.py、configs.py</td></tr>
+              <tr><td>robots/ cameras/ motors/ teleoperators/</td><td>真机硬件抽象</td><td>robots/robot.py</td></tr>
+              <tr><td>scripts/</td><td>CLI 实现</td><td>lerobot_train.py、lerobot_eval.py</td></tr>
+              <tr><td>configs/</td><td>TrainPipelineConfig 等</td><td>train.py</td></tr>
+              <tr><td>rollout/ · rewards/ · rl/</td><td>在线采集、奖励、RL</td><td>strategies/、factory.py</td></tr>
+              <tr><td>utils/ · optim/ · transforms/</td><td>工具、优化器、变换</td><td>按需</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><span class="pill">统一契约</span> <span class="pill">Processor 可序列化</span> <span class="pill">Hub 流通</span> <span class="pill">真机 ≈ 仿真接口</span></p>
+      </div>`;
+
+    HTML.top = `
+      <div class="stack">
+        <h2>仓库顶层目录</h2>
+        <p class="muted">路径：main/lerobot/（相对 Foundation 工作区）</p>
+        <table>
+          <thead><tr><th>目录 / 文件</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td>src/</td><td>可安装包 lerobot 的源码根（pip install -e .）</td></tr>
+            <tr><td>tests/</td><td>单元 / 集成测试，按模块镜像 src 结构</td></tr>
+            <tr><td>docs/</td><td>文档源（mdx）与构建配置</td></tr>
+            <tr><td>examples/</td><td>示例脚本与 notebook 风格演示</td></tr>
+            <tr><td>scripts/</td><td>仓库级辅助脚本（非 CLI 主入口）</td></tr>
+            <tr><td>docker/</td><td>用户镜像与各 benchmark Dockerfile</td></tr>
+            <tr><td>media/</td><td>README / 文档用媒体资源</td></tr>
+            <tr><td>pyproject.toml</td><td>依赖 extras：training、smolvla、libero…</td></tr>
+            <tr><td>AGENT_GUIDE.md / AGENTS.md</td><td>上手与架构约定（给人类与 Agent）</td></tr>
+          </tbody>
+        </table>
+        <h3>安装与 extras</h3>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">最小训练栈</div><div class="card-b muted">pip install -e ".[training,smolvla,libero]"</div></div>
+          <div class="card"><div class="card-h">默认安装更瘦</div><div class="card-b muted">0.6.x 起 pip install lerobot 不再默认带齐 dataset/training；按需加 extras。</div></div>
+        </div>
+        <div class="callout"><strong>和 src/lerobot/scripts 的区别</strong>
+          顶层 scripts/ 多为仓库维护脚本；用户日常 CLI（lerobot-train 等）入口在
+          src/lerobot/scripts/，由 pyproject 的 console_scripts 注册。
+        </div>
+      </div>`;
+
+    HTML.policy = `
+      <div class="stack">
+        <h2>策略学习相关</h2>
+        <table>
+          <thead><tr><th>路径</th><th>内容</th></tr></thead>
+          <tbody>
+            <tr><td>policies/</td><td>各策略子包：act、smolvla、pi0、diffusion、groot…</td></tr>
+            <tr><td>policies/factory.py</td><td>按 type/path 懒加载策略与 processor</td></tr>
+            <tr><td>policies/pretrained.py</td><td>PreTrainedPolicy 基类（nn.Module + HubMixin）</td></tr>
+            <tr><td>configs/</td><td>TrainPipelineConfig、Policy 多态 ChoiceRegistry</td></tr>
+            <tr><td>optim/</td><td>优化器 / scheduler 预设</td></tr>
+            <tr><td>rl/</td><td>在线 RL 相关组件</td></tr>
+            <tr><td>rewards/</td><td>奖励模型：SARM / TOPReward / Robometer</td></tr>
+            <tr><td>model/</td><td>共享模型积木（若策略复用）</td></tr>
+          </tbody>
+        </table>
+        <h3>策略族（policies/ 子目录）</h3>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">模仿学习 / VLA</div><div class="card-b muted">
+            act · diffusion · vqbet · multi_task_dit · smolvla · pi0 / pi05 / pi0_fast · groot · xvla · wall_x · eo1 · evo1 · molmoact2
+          </div></div>
+          <div class="card"><div class="card-h">RL / 世界模型 / 其他</div><div class="card-b muted">
+            tdmpc · gaussian_actor · vla_jepa · lingbot_va · fastwam · rtc（实时 chunking）
+          </div></div>
+        </div>
+        <div class="callout"><strong>扩展点</strong>
+          新策略：继承 PreTrainedPolicy，注册 Config subclass，在 factory 挂上；
+          文档约定见 docs bring_your_own_policies。
+        </div>
+      </div>`;
+
+    HTML.data = `
+      <div class="stack">
+        <h2>数据与 Processor</h2>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">datasets/</div><div class="card-b">
+            <p>LeRobotDataset：episode 感知</p>
+            <p class="muted">Parquet（state/action）+ MP4/图像 + meta（info/stats/tasks）</p>
+            <p class="tiny">可 Hub 流式加载，也可本地录制后上传</p>
+          </div></div>
+          <div class="card"><div class="card-h">processor/</div><div class="card-b">
+            <p>可组合 ProcessorStep 管线</p>
+            <p class="muted">rename、normalize、tokenize、batch、device、env 专用步（如 LiberoProcessorStep）</p>
+            <p class="tiny">与策略一起序列化到 Hub（policy_preprocessor.json）</p>
+          </div></div>
+        </div>
+        <table>
+          <thead><tr><th>相关目录</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td>data_processing/</td><td>数据清洗 / 转换辅助</td></tr>
+            <tr><td>transforms/</td><td>张量级变换</td></tr>
+            <tr><td>templates/</td><td>配置或任务模板</td></tr>
+            <tr><td>async_inference/</td><td>异步推理服务相关</td></tr>
+            <tr><td>transport/</td><td>进程/服务间传输</td></tr>
+          </tbody>
+        </table>
+        <h3>数据在闭环中的位置</h3>
+        <p class="muted">record 写入 dataset → train 用 DataLoader + preprocessor → eval 用同一套特征契约读 env obs。特征名不一致时靠 RenameObservationsProcessorStep 或 CLI --rename_map。</p>
+      </div>`;
+
+    HTML.hw = `
+      <div class="stack">
+        <h2>真机与仿真</h2>
+        <table>
+          <thead><tr><th>目录</th><th>抽象</th><th>典型用法</th></tr></thead>
+          <tbody>
+            <tr><td>robots/</td><td>Robot：connect / get_observation / send_action</td><td>SO 系列 follower 等</td></tr>
+            <tr><td>cameras/</td><td>相机驱动与帧获取</td><td>与 robot 组合观测</td></tr>
+            <tr><td>motors/</td><td>电机总线 / 驱动</td><td>底层执行</td></tr>
+            <tr><td>teleoperators/</td><td>遥操作端（leader）</td><td>teleoperate / record</td></tr>
+            <tr><td>envs/</td><td>Gymnasium + EnvConfig</td><td>LIBERO、MetaWorld、RoboCasa…</td></tr>
+            <tr><td>rollout/</td><td>在线采集策略（DAgger 等）</td><td>lerobot-rollout</td></tr>
+          </tbody>
+        </table>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">仿真评测</div><div class="card-b muted">
+            lerobot-eval + --env.type=libero（等）。docker/ 下有各 benchmark Dockerfile。无头：MUJOCO_GL=egl。
+          </div></div>
+          <div class="card"><div class="card-h">真机部署</div><div class="card-b muted">
+            同一策略可切 Robot：calibrate → teleoperate → record → train → record --policy.path 或 rollout。
+          </div></div>
+        </div>
+        <div class="callout"><strong>接口统一的意义</strong>
+          策略只认 observation/action 张量契约；Processor 负责 dataset ↔ policy ↔ robot/env 之间的缝合，
+          因此仿真训好的权重可以迁到真机（在标定与特征对齐的前提下）。
+        </div>
+      </div>`;
+
+    HTML.cli = `
+      <div class="stack">
+        <h2>CLI 与配置</h2>
+        <p class="muted">实现位于 src/lerobot/scripts/；配置 dataclass 在 configs/。</p>
+        <table>
+          <thead><tr><th>命令</th><th>脚本</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td>lerobot-train</td><td>lerobot_train.py</td><td>离线训练 / finetune</td></tr>
+            <tr><td>lerobot-eval</td><td>lerobot_eval.py</td><td>仿真闭环评测</td></tr>
+            <tr><td>lerobot-record</td><td>lerobot_record.py</td><td>真机/仿真录制数据集</td></tr>
+            <tr><td>lerobot-teleoperate</td><td>lerobot_teleoperate.py</td><td>遥操作验证</td></tr>
+            <tr><td>lerobot-rollout</td><td>lerobot_rollout.py</td><td>真机部署 / DAgger</td></tr>
+            <tr><td>lerobot-dataset-viz</td><td>（viz 相关）</td><td>可视化数据集</td></tr>
+            <tr><td>lerobot-calibrate</td><td>（校准）</td><td>硬件标定</td></tr>
+            <tr><td>lerobot-annotate</td><td>（标注）</td><td>语言等标注</td></tr>
+          </tbody>
+        </table>
+        <h3>配置入口</h3>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">configs/train.py</div><div class="card-b muted">
+            TrainPipelineConfig：dataset、policy、steps、wandb、env_eval_freq…
+          </div></div>
+          <div class="card"><div class="card-h">draccus CLI</div><div class="card-b muted">
+            --policy.type=act 或 --policy.path=lerobot/smolvla_base；嵌套字段用点号覆盖。
+          </div></div>
+        </div>
+        <h3>utils 与其它</h3>
+        <table>
+          <thead><tr><th>目录</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>utils/</td><td>常量、日志、随机种子、设备辅助</td></tr>
+            <tr><td>jobs/</td><td>云/远程训练任务相关</td></tr>
+            <tr><td>common/</td><td>跨模块共享小工具</td></tr>
+            <tr><td>types.py</td><td>共享类型别名</td></tr>
+          </tbody>
+        </table>
+        <div class="callout"><strong>建议阅读顺序</strong>
+          README → AGENT_GUIDE.md → AGENTS.md Architecture → policies/act 或 smolvla →
+          datasets/lerobot_dataset.py → processor/pipeline.py → scripts/lerobot_train.py
+        </div>
+      </div>`;
+
+    function activate(id) {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("is-active", b.dataset.id === id));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("is-active", p.dataset.id === id));
+      history.replaceState(null, "", "#" + id);
+    }
+
+    const tabsEl = document.getElementById("tabs");
+    const panelsEl = document.getElementById("panels");
+    TABS.forEach((t) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tab-btn";
+      btn.dataset.id = t.id;
+      btn.textContent = t.label;
+      btn.addEventListener("click", () => activate(t.id));
+      tabsEl.appendChild(btn);
+
+      const panel = document.createElement("div");
+      panel.className = "panel";
+      panel.dataset.id = t.id;
+      panel.innerHTML = HTML[t.id];
+      panelsEl.appendChild(panel);
+    });
+
+    const initial = (location.hash || "#overview").slice(1);
+    activate(TABS.some((t) => t.id === initial) ? initial : "overview");
+    if (window.CanvasTheme) CanvasTheme.init();
+  </script>
+</body>
+</html>
