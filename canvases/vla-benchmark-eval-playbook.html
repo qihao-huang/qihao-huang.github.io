@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>VLA / IL 评测流程手册</title>
+  <meta name="description" content="ACT、SmolVLA、π0/π0.5、GR00T 在 LIBERO 等 benchmark 上的评测流程、关键参数与高分误解。">
+  <script src="canvas-theme.js" data-boot></script>
+  <link rel="stylesheet" href="canvas-shared.css">
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="crumb"><a href="../index.html#canvas">← Canvas 目录</a> · <a href="../index.html">首页</a></div>
+      <div class="topbar-actions">
+        <div class="theme-switch" role="group" aria-label="主题切换" title="主题切换">
+          <button type="button" class="theme-btn" data-theme-mode="system">自动</button>
+          <button type="button" class="theme-btn" data-theme-mode="light">浅色</button>
+          <button type="button" class="theme-btn" data-theme-mode="dark">深色</button>
+        </div>
+        <div class="tiny">Exported from Cursor Canvas · 2026-07</div>
+      </div>
+    </div>
+
+    <h1>VLA / IL 评测流程手册</h1>
+    <p class="subtitle">ACT · SmolVLA · π0/π0.5 · GR00T(N1.7) 在 LIBERO 等 benchmark 上的标准流程、关键参数与常见误解</p>
+    <p class="tiny">依据：LeRobot docs（libero / pi0 / pi05 / groot / smolvla）+ 本地 fullstack 笔记</p>
+
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <hr class="hr">
+    <div id="panels"></div>
+  </div>
+
+  <script>
+    const TABS = [
+      { id: "overview", label: "总览" },
+      { id: "protocol", label: "标准协议" },
+      { id: "libero", label: "LIBERO" },
+      { id: "models", label: "按模型" },
+      { id: "commands", label: "命令与参数" },
+      { id: "other", label: "其他 Benchmark" },
+      { id: "caveats", label: "高分与泛化" },
+    ];
+
+    const HTML = {};
+
+    HTML.overview = `
+      <div class="stack">
+        <div class="callout"><strong>一句话</strong>
+          LeRobot 生态里主流 SOTA 在 LIBERO 上的公开数字，几乎都是「同 benchmark demo 上 finetune/post-train → 用 *_libero* 权重 → 同 suite 闭环 lerobot-eval」，不是 base 零样本。高分主要来自同分布模仿学习，不是开放世界泛化。
+        </div>
+        <div class="grid grid-4">
+          <div class="stat"><div class="v">同域 FT</div><div class="l">标准报分协议</div></div>
+          <div class="stat"><div class="v">4 suite</div><div class="l">LIBERO 主表</div></div>
+          <div class="stat"><div class="v">闭环</div><div class="l">success rate</div></div>
+          <div class="stat"><div class="v">≠ 零样本</div><div class="l">base 直接评</div></div>
+        </div>
+        <div>
+          <h2>端到端步骤（所有模型共用骨架）</h2>
+          <div class="card"><div class="card-b">
+            <div class="grid grid-4">
+              <div><span class="flow-n">01</span><strong>准备环境</strong><div class="muted">lerobot[libero] + MuJoCo；MUJOCO_GL=egl 无头渲染</div></div>
+              <div><span class="flow-n">02</span><strong>拿到策略</strong><div class="muted">下 *_libero* 权重，或自己在 LIBERO demo 上训</div></div>
+              <div><span class="flow-n">03</span><strong>闭环评测</strong><div class="muted">lerobot-eval：env.type=libero，按 suite 跑 episode</div></div>
+              <div><span class="flow-n">04</span><strong>读结果</strong><div class="muted">eval_info.json 的 pc_success；视频在 output_dir/videos/</div></div>
+            </div>
+          </div></div>
+        </div>
+        <div>
+          <h2>模型速览</h2>
+          <table>
+            <thead><tr><th>模型</th><th>官方 LIBERO 权重</th><th>要不要自己训</th><th>评测粒度</th></tr></thead>
+            <tbody>
+              <tr><td>SmolVLA 0.45B</td><td>lerobot/smolvla_libero</td><td>复现数字：不用</td><td>一权重 × 四 suite</td></tr>
+              <tr><td>π0 / π0.5</td><td>pi0*_libero_finetuned</td><td>复现数字：不用</td><td>一权重 × 四 suite</td></tr>
+              <tr><td>GR00T N1.7</td><td>gr00t17-lerobot-libero_*</td><td>复现数字：不用</td><td>四权重，按 suite 配对</td></tr>
+              <tr><td>ACT</td><td>无官方 LIBERO ckpt</td><td>必须自己 BC</td><td>训完再同 suite 评</td></tr>
+            </tbody>
+          </table>
+          <p class="tiny">训练数据 HuggingFaceVLA/libero（~70GB）仅 finetune 需要；纯评测只需策略权重 + LIBERO 仿真包。</p>
+        </div>
+      </div>`;
+
+    HTML.protocol = `
+      <div class="stack">
+        <h2>标准协议：训什么、评什么</h2>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">Post-train / Finetune</div><div class="card-b muted">
+            用该 benchmark 的人类演示（LeRobotDataset）做 BC / flow-matching 微调。<br>
+            例：HuggingFaceVLA/libero、IPEC-COMMUNITY/libero_spatial_no_noops_…
+          </div></div>
+          <div class="card"><div class="card-h">Closed-loop Eval</div><div class="card-b muted">
+            同一批 task/suite，随机初始状态，仿真里 rollout，记 success rate。<br>
+            不是把评测轨迹当训练集背诵；但是同任务分布（in-distribution）。
+          </div></div>
+        </div>
+        <h2>两条评测管线（别混）</h2>
+        <table>
+          <thead><tr><th>参数</th><th>测什么</th><th>何时用</th></tr></thead>
+          <tbody>
+            <tr><td>--eval_steps + dataset.eval_split</td><td>Open-loop hold-out loss</td><td>训练中 cheap 监控</td></tr>
+            <tr><td>--env_eval_freq + --env.type=libero</td><td>闭环 pc_success</td><td>训练中趋势（建议 n_episodes=1）</td></tr>
+            <tr><td>训完 lerobot-eval</td><td>正式 benchmark 数字</td><td>n_episodes≥10（论文）或 ≥50（稳）</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warn"><strong>命名惯例</strong>
+          Hub 上 lerobot/&lt;policy&gt;_libero 表示「已在 LIBERO 上训好再报分」的 checkpoint，不是 base。贡献规范见 bring_your_own_policies.mdx。
+        </div>
+        <h2>训练中要不要挂闭环？</h2>
+        <p class="muted">可以：--env.type=libero --env_eval_freq=5000~20000 --eval.n_episodes=1 --eval.batch_size=1。正式报数仍建议训完再单独 lerobot-eval。--eval_steps 只算 open-loop loss。</p>
+      </div>`;
+
+    HTML.libero = `
+      <div class="stack">
+        <h2>LIBERO：Suite 是什么</h2>
+        <p>Suite = 一类任务集合（约 10 个 task），不是单个 task。主表通常报四套件成功率再平均。</p>
+        <table>
+          <thead><tr><th>Suite</th><th>CLI</th><th>Tasks</th><th>考什么</th></tr></thead>
+          <tbody>
+            <tr><td>Spatial</td><td>libero_spatial</td><td>10</td><td>空间关系</td></tr>
+            <tr><td>Object</td><td>libero_object</td><td>10</td><td>物体种类变化</td></tr>
+            <tr><td>Goal</td><td>libero_goal</td><td>10</td><td>目标/意图变化</td></tr>
+            <tr><td>Long (10)</td><td>libero_10</td><td>10</td><td>更长多步任务</td></tr>
+            <tr><td>90（较少进主表）</td><td>libero_90</td><td>90</td><td>短视界大集合 / lifelong 预训</td></tr>
+          </tbody>
+        </table>
+        <h2>论文式评测规模</h2>
+        <div class="grid grid-3">
+          <div class="stat"><div class="v">40</div><div class="l">tasks（4×10）</div></div>
+          <div class="stat"><div class="v">10</div><div class="l">episodes / task（论文）</div></div>
+          <div class="stat"><div class="v">400</div><div class="l">总 episodes</div></div>
+        </div>
+        <p class="tiny">LeRobot docs：每 task 10 episodes 对齐已发表结果。社区有时用 50 降方差，更慢。5080 上 SmolVLA 全量约 4–8 小时（n_action_steps=1）。</p>
+        <h2>评测需要下什么</h2>
+        <table>
+          <thead><tr><th>内容</th><th>纯评测</th><th>自己 finetune</th></tr></thead>
+          <tbody>
+            <tr><td>策略权重 *_libero*</td><td>必须</td><td>训完用本地 ckpt</td></tr>
+            <tr><td>LIBERO 仿真包 / assets</td><td>必须</td><td>必须</td></tr>
+            <tr><td>HuggingFaceVLA/libero ~70GB</td><td>不需要</td><td>需要</td></tr>
+            <tr><td>SmolVLM2-500M（SmolVLA）</td><td>加载时会拉</td><td>同左</td></tr>
+          </tbody>
+        </table>
+        <div class="callout"><strong>可视化</strong>
+          LIBERO 在 LeRobot 里固定 OffScreenRenderEnv，无实时 GUI。默认把视频写到 {output_dir}/videos/{suite}_{task_id}/eval_episode_*.mp4（每 task 最多约 10 条）。事后 ffplay / 播放器观看。
+        </div>
+      </div>`;
+
+    HTML.models = `
+      <div class="stack">
+        <h2>按模型：流程差异</h2>
+        <div class="card"><div class="card-h">SmolVLA <span class="pill info">0.45B</span></div><div class="card-b">
+          <p>smolvla_base（SO100 社区数据）→ 在 HuggingFaceVLA/libero finetune → smolvla_libero。一个权重评四个 suite。</p>
+          <p class="muted">关键：必须 --policy.n_action_steps=1（config 默认 50）；--policy.empty_cameras=1；camera_name_mapping 对齐 agentview/wrist → camera1/camera2。</p>
+          <p class="muted">论文约 87.3% avg；开源 ckpt 常见落在 ~70–85%，协议不对会更偏。</p>
+        </div></div>
+        <div class="card"><div class="card-h">π0 / π0.5 <span class="pill">~4B</span></div><div class="card-b">
+          <p>使用 pi0_libero_finetuned / pi05_libero_finetuned。π0.5 文档：从已有 pi05_libero 再 +6k steps 于 HF LIBERO。一权重 × 四 suite。</p>
+          <p class="muted">复现 π0.5 时文档常建议 --policy.n_action_steps=10。16GB 上推理基本可行。</p>
+        </div></div>
+        <div class="card"><div class="card-h">GR00T N1.7（ngroot） <span class="pill warn">per-suite</span></div><div class="card-b">
+          <p>底座 GR00T-N1.7-3B。LeRobot 发布的是四份专精权重：gr00t17-lerobot-libero_{spatial,object,goal,10}-640。评测时 suite ↔ checkpoint 一一对应，不是一个模型打四个。</p>
+          <p class="muted">gr00t17-lerobot-* = 在 LeRobot 里从底座重新 finetune 的封装版（含 preprocessor）；GR00T-N1.7-LIBERO = Isaac 原生格式（repo 内仍是 4 子目录）。不是无损转格式。</p>
+          <p class="muted">不存在 nvidia/gr00t17-lerobot-libero 单模型。跨 suite 泛化需自己联合训。</p>
+        </div></div>
+        <div class="card"><div class="card-h">ACT <span class="pill">无官方 ckpt</span></div><div class="card-b">
+          <p>无 act_base / 官方 LIBERO 权重。--policy.type=act 从 ImageNet ResNet18 起，在 LIBERO demo 上 BC，再用本地 checkpoint 做 lerobot-eval。</p>
+          <p class="muted">10 episode smoke 只能验流程；正经数字需要更全数据与更长 steps。</p>
+        </div></div>
+        <h2>同生态其他 *_libero 模型</h2>
+        <p class="muted">VLA-JEPA、MolmoAct2、FastWAM、X-VLA 等在 LeRobot docs 里同样提供 *_LIBERO* / *_libero 权重再评——协议一致。</p>
+      </div>`;
+
+    HTML.commands = `
+      <div class="stack">
+        <h2>命令模板与关键参数</h2>
+        <h3>SmolVLA 冒烟（看视频）</h3>
+        <pre>export MUJOCO_GL=egl
+lerobot-eval \\
+  --policy.path=lerobot/smolvla_libero \\
+  --env.type=libero --env.task=libero_spatial --env.task_ids=[0] \\
+  --eval.batch_size=1 --eval.n_episodes=2 \\
+  --env.max_parallel_tasks=1 --policy.device=cuda \\
+  --policy.n_action_steps=1 --policy.num_steps=10 \\
+  --policy.empty_cameras=1 \\
+  '--env.camera_name_mapping={"agentview_image":"camera1","robot0_eye_in_hand_image":"camera2"}' \\
+  --output_dir=./eval_smoke/smolvla_libero</pre>
+        <h3>SmolVLA 正式（四 suite × 10 ep）</h3>
+        <pre># 同上，但：
+# --env.task=libero_spatial,libero_object,libero_goal,libero_10
+# --eval.n_episodes=10
+# 去掉 --env.task_ids</pre>
+        <h3>π0.5 / GR00T 要点</h3>
+        <pre># π0.5
+lerobot-eval --policy.path=lerobot/pi05_libero_finetuned \\
+  --env.type=libero --env.task=libero_spatial,libero_object,libero_goal,libero_10 \\
+  --eval.batch_size=1 --eval.n_episodes=10 --policy.n_action_steps=10
+
+# GR00T：换 suite 必须换权重
+lerobot-eval --policy.type=groot \\
+  --policy.base_model_path=nvidia/gr00t17-lerobot-libero_spatial-640 \\
+  --policy.embodiment_tag=libero_sim \\
+  --env.type=libero --env.task=libero_spatial --eval.n_episodes=50</pre>
+        <h3>ACT（本地 ckpt）</h3>
+        <pre>lerobot-eval \\
+  --policy.path=/path/to/checkpoints/XXXXXX/pretrained_model \\
+  --env.type=libero --env.task=libero_spatial \\
+  --eval.batch_size=1 --eval.n_episodes=10 --policy.device=cuda</pre>
+        <h2>参数清单</h2>
+        <table>
+          <thead><tr><th>参数</th><th>建议</th><th>原因</th></tr></thead>
+          <tbody>
+            <tr><td>MUJOCO_GL</td><td>egl</td><td>无头离屏渲染</td></tr>
+            <tr><td>eval.batch_size</td><td>1</td><td>LIBERO 稳、省显存</td></tr>
+            <tr><td>env.max_parallel_tasks</td><td>1</td><td>多 task 串行</td></tr>
+            <tr><td>SmolVLA n_action_steps</td><td>1</td><td>论文仿真协议；默认 50 会偏</td></tr>
+            <tr><td>π0.5 n_action_steps</td><td>10</td><td>文档复现建议</td></tr>
+            <tr><td>eval.n_episodes</td><td>10 / ≥50</td><td>论文对齐 / 更稳方差</td></tr>
+            <tr><td>output_dir</td><td>自定义</td><td>videos/ + eval_info.json</td></tr>
+          </tbody>
+        </table>
+      </div>`;
+
+    HTML.other = `
+      <div class="stack">
+        <h2>其他 Benchmark：是不是同一套路？</h2>
+        <div class="callout"><strong>结论</strong>
+          Meta-World、VLABench 等在 LeRobot 里同样是「该 benchmark 数据上训/finetune → 同 benchmark 闭环评」。几乎没有把 base 零样本当主表的。
+        </div>
+        <table>
+          <thead><tr><th>Benchmark</th><th>协议</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr><td>Meta-World</td><td>metaworld_mt50 训 → eval</td><td>文档建议跑满 MT50 才更能暴露弱点</td></tr>
+            <tr><td>VLABench</td><td>smolvla_base → primitive FT → smolvla_vlabench</td><td>同域</td></tr>
+            <tr><td>LIBERO-plus</td><td>仍需 LIBERO 系 FT；eval 加 7 维扰动</td><td>更难，但仍同任务族</td></tr>
+            <tr><td>PushT / Aloha</td><td>dataset → train → eval/rollout</td><td>教学向</td></tr>
+            <tr><td>SimplerEnv</td><td>多为 domain-specific ckpt</td><td>GR00T/VLA-JEPA 有专用权重</td></tr>
+          </tbody>
+        </table>
+        <p class="tiny">例外：TOPReward 等奖励模型可强调 zero-shot——那不是操控策略 success 榜。</p>
+      </div>`;
+
+    HTML.caveats = `
+      <div class="stack">
+        <h2>为什么分数那么高？怎样才算更强泛化？</h2>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-h">高分主因</div><div class="card-b">
+            <ol class="muted" style="margin:0;padding-left:1.2rem">
+              <li>同 sim、同 task、同 demo 分布的 BC/FT</li>
+              <li>强 VLA 预训练后再做 target-domain 微调</li>
+              <li>部分模型 per-suite 专精（GR00T）</li>
+              <li>评的是新初始状态，但仍是 in-distribution</li>
+            </ol>
+          </div></div>
+          <div class="card"><div class="card-h">这不等于</div><div class="card-b">
+            <ul class="muted" style="margin:0;padding-left:1.2rem">
+              <li>base 零样本 LIBERO</li>
+              <li>跨 suite 迁移（训 A 评 B）</li>
+              <li>原始 LIBERO lifelong 设定</li>
+              <li>sim→real 自动成立</li>
+            </ul>
+          </div></div>
+        </div>
+        <div class="callout warn"><strong>与原始 LIBERO 设计的张力</strong>
+          LIBERO 论文强调 lifelong / 知识迁移；当前 VLA leaderboard 更像「多任务模仿 + 闭环成功率」。文案里的 generalization 常指四 suite 内多任务，不是未见过 benchmark。
+        </div>
+        <h2>若你关心泛化，改协议</h2>
+        <table>
+          <thead><tr><th>设定</th><th>测什么</th></tr></thead>
+          <tbody>
+            <tr><td>*_base 直接 lerobot-eval</td><td>真·零样本</td></tr>
+            <tr><td>只训 spatial，评 object/goal/10</td><td>跨 suite 迁移</td></tr>
+            <tr><td>LIBERO-90 预训 → LIBERO-10</td><td>接近原 lifelong</td></tr>
+            <tr><td>LIBERO-plus 七维扰动</td><td>同策略鲁棒性</td></tr>
+            <tr><td>真机 SO100 rollout</td><td>sim→real</td></tr>
+          </tbody>
+        </table>
+        <p class="tiny">类比：ImageNet 预训练后再在同类 val 上 finetune 再测——分数会很高，但不等于 COCO 零样本。</p>
+      </div>`;
+
+    const tabsEl = document.getElementById("tabs");
+    const panelsEl = document.getElementById("panels");
+
+    function activate(id) {
+      document.querySelectorAll(".tab-btn").forEach((b) => {
+        b.classList.toggle("is-active", b.dataset.id === id);
+      });
+      panelsEl.innerHTML = HTML[id] || "";
+      if (location.hash.replace(/^#/, "") !== id) {
+        history.replaceState(null, "", "#" + id);
+      }
+    }
+
+    TABS.forEach((t) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tab-btn";
+      btn.dataset.id = t.id;
+      btn.textContent = t.label;
+      btn.addEventListener("click", () => activate(t.id));
+      tabsEl.appendChild(btn);
+    });
+
+    const initial = (location.hash || "#overview").replace(/^#/, "");
+    activate(TABS.some((t) => t.id === initial) ? initial : "overview");
+    window.addEventListener("hashchange", () => {
+      const id = location.hash.replace(/^#/, "");
+      if (TABS.some((t) => t.id === id)) activate(id);
+    });
+    if (window.CanvasTheme) CanvasTheme.init();
+  </script>
+</body>
+</html>

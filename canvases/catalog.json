@@ -1,5 +1,13 @@
 [
   {
+    "id": "vla-benchmark-eval-playbook",
+    "title": "VLA / IL 评测流程手册",
+    "summary": "ACT、SmolVLA、π0/π0.5、GR00T 在 LIBERO 等 benchmark 上的标准评测流程、关键参数与高分误解。",
+    "href": "canvases/vla-benchmark-eval-playbook.html",
+    "date": "2026-07",
+    "tags": ["LeRobot", "LIBERO", "评测", "SmolVLA", "GR00T"]
+  },
+  {
     "id": "lerobot-architecture-map",
     "title": "LeRobot 具身智能上手地图",
     "summary": "模型、数据、链路、工具链、仿真与评测的架构梳理，适合快速建立 LeRobot 心智模型。",
