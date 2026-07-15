@@ -719,9 +719,7 @@
     <div class="nav-container">
       <a href="#about" data-panel="about" class="is-active" aria-current="page">About</a>
       <a href="#knowledge" data-panel="research">Research</a>
-      <a href="#canvas" data-panel="canvas">Canvas</a>
       <a href="https://www.zhihu.com/people/quiescencent/posts" target="_blank" rel="noopener noreferrer">Blog</a>
-      <a href="papers.html">Memo</a>
     </div>
   </nav>
 
@@ -911,25 +909,6 @@
           <span class="tag">Translation</span>
         </div>
       </div> -->
-    </section>
-
-    <!-- Canvas：Cursor Canvas 导出的静态页目录，条目维护在 canvases/catalog.json -->
-    <section id="canvas" class="section view-panel" data-panel="canvas" lang="zh-CN">
-      <h2>Canvas</h2>
-      <p style="color: var(--text-light); margin: -0.5rem 0 1.25rem; max-width: 42rem;">
-        从 Cursor Canvas 导出的可复用知识页。点击条目打开独立 HTML。
-      </p>
-      <div id="canvas-catalog" class="canvas-catalog" aria-live="polite">
-        <div class="publication-item">
-          <a href="canvases/lerobot-architecture-map.html">LeRobot 具身智能上手地图</a>
-          <div class="publication-meta">2026-07 · 模型、数据、链路、工具链、仿真与评测</div>
-          <div class="tags">
-            <span class="tag">LeRobot</span>
-            <span class="tag">具身智能</span>
-            <span class="tag">上手</span>
-          </div>
-        </div>
-      </div>
     </section>
 
     <!-- Blog：长文可放在 manuscripts/*.md，列表里用 data-blog-md 指向文件，无需再建 html -->
@@ -1173,54 +1152,14 @@
       const hashToPanel = {
         about: 'about',
         knowledge: 'research',
-        canvas: 'canvas',
         blog: 'blog'
       };
 
       const panelToHash = {
         about: 'about',
         research: 'knowledge',
-        canvas: 'canvas',
         blog: 'blog'
       };
-
-      function escapeHtml(s) {
-        return String(s)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
-      }
-
-      function renderCanvasCatalog(items) {
-        var host = document.getElementById('canvas-catalog');
-        if (!host || !items || !items.length) return;
-        host.innerHTML = items.map(function (item) {
-          var tags = (item.tags || []).map(function (t) {
-            return '<span class="tag">' + escapeHtml(t) + '</span>';
-          }).join('');
-          return (
-            '<div class="publication-item">' +
-              '<a href="' + escapeHtml(item.href) + '">' + escapeHtml(item.title) + '</a>' +
-              '<div class="publication-meta">' + escapeHtml((item.date || '') + (item.summary ? ' · ' + item.summary : '')) + '</div>' +
-              (tags ? '<div class="tags">' + tags + '</div>' : '') +
-            '</div>'
-          );
-        }).join('');
-      }
-
-      function loadCanvasCatalog() {
-        if (location.protocol === 'file:') return;
-        fetch('canvases/catalog.json', { cache: 'no-cache' })
-          .then(function (r) {
-            if (!r.ok) throw new Error(String(r.status));
-            return r.json();
-          })
-          .then(renderCanvasCatalog)
-          .catch(function () { /* keep static fallback in HTML */ });
-      }
-
-      loadCanvasCatalog();
 
       function syncHash(panelId) {
         var want = panelId === 'about' ? '' : '#' + (panelToHash[panelId] || 'about');
