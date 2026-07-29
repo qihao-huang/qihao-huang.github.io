@@ -23,6 +23,7 @@
 | [isaaclab_arena_smolvla_quickstart.md](./isaaclab_arena_smolvla_quickstart.md) | **IsaacLab Arena × LeRobot**：本机只跑 **SmolVLA**（GR1 microwave 等） |
 | [robocasa_lerobot_rlinf_handson.md](./robocasa_lerobot_rlinf_handson.md) | **RoboCasa**：LeRobot SmolVLA 安装/训评 + RLinf π₀ PPO 后训练；臂+底盘动作序与精读代码路径 |
 | [robocasa_task_catalog.md](./robocasa_task_catalog.md) | **RoboCasa TARGET50** 中英对照 + Atomic/Composite、seen/unseen、运动类型（贴夹具/仅导航/轮臂）与 pretrain300 规模 |
+| [具身智能比赛梳理_2025-2026.md](./具身智能比赛梳理_2025-2026.md) | 2025下半年~2026下半年具身智能国际比赛全景：ICRA/CVPR/NeurIPS/IROS |
 
 
 ### 相关 Canvas（不重复展开）
