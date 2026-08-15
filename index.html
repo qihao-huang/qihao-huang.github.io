@@ -515,6 +515,26 @@
       gap: 0.38rem;
     }
 
+    .logo-bar a.logo-apple-lockup {
+      gap: 0.58rem;
+    }
+
+    .logo-bar img.logo-apple-mark {
+      height: 18px;
+    }
+
+    .logo-apple-word {
+      font-family: "Helvetica Neue", Helvetica, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 600;
+      font-size: 1.02rem;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      color: #fff;
+      white-space: nowrap;
+      text-decoration: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
     .logo-bar img.logo-hku {
       height: 26px;
       filter: none;
@@ -758,6 +778,14 @@
       .logo-hku-word {
         font-size: 0.72rem;
         letter-spacing: 0.08em;
+      }
+
+      .logo-bar img.logo-apple-mark {
+        height: 14px;
+      }
+
+      .logo-apple-word {
+        font-size: 0.78rem;
       }
     }
 
@@ -1106,8 +1134,9 @@
     <a href="https://www.bytedance.com/" target="_blank" rel="noopener noreferrer">
       <img src="pics/logos/bytedance.svg" alt="ByteDance">
     </a>
-    <a href="https://www.apple.com/" target="_blank" rel="noopener noreferrer">
-      <img src="pics/logos/apple.svg" alt="Apple">
+    <a class="logo-apple-lockup" href="https://www.apple.com/" target="_blank" rel="noopener noreferrer">
+      <img class="logo-apple-mark" src="pics/logos/apple.svg" alt="">
+      <span class="logo-apple-word">Apple</span>
     </a>
     <a href="https://plus.ai/" target="_blank" rel="noopener noreferrer">
       <img src="pics/logos/plusai.svg" alt="PlusAI">
