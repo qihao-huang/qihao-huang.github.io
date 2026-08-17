@@ -436,12 +436,18 @@
     .engagement-stats {
       margin-top: 0.55rem;
       font-size: 0.62rem;
-      color: #cbd5e1;
+      color: rgba(148, 163, 184, 0.08);
       letter-spacing: 0.01em;
       font-weight: 400;
       line-height: 1.35;
-      opacity: 0.72;
-      user-select: none;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .engagement-stats::selection,
+    .engagement-stats *::selection {
+      color: #475569;
+      background: #e2e8f0;
     }
 
     .engagement-stats .zhihu-stats,
@@ -452,11 +458,6 @@
     .engagement-stats a {
       color: inherit;
       text-decoration: none;
-      transition: color 0.25s ease;
-    }
-
-    .engagement-stats a:hover {
-      color: #64748b;
     }
 
     .engagement-stats .zhihu-stat-val {
@@ -511,6 +512,7 @@
       filter: brightness(0) invert(1);
     }
 
+    .logo-bar a.logo-zju-lockup,
     .logo-bar a.logo-hku-lockup {
       gap: 0.38rem;
     }
@@ -537,9 +539,9 @@
 
     .logo-bar img.logo-hku {
       height: 26px;
-      filter: none;
     }
 
+    .logo-zju-word,
     .logo-hku-word {
       font-family: "Times New Roman", Times, "Palatino Linotype", Palatino, Georgia, serif;
       font-size: 0.98rem;
@@ -775,6 +777,7 @@
         height: 20px;
       }
 
+      .logo-zju-word,
       .logo-hku-word {
         font-size: 0.72rem;
         letter-spacing: 0.08em;
@@ -1121,8 +1124,9 @@
   </div>
 
   <footer class="logo-bar" aria-label="Affiliations">
-    <a href="https://www.zju.edu.cn/" target="_blank" rel="noopener noreferrer">
-      <img src="pics/logos/zju.svg" alt="Zhejiang University">
+    <a class="logo-zju-lockup" href="https://www.zju.edu.cn/" target="_blank" rel="noopener noreferrer">
+      <img src="pics/logos/zju.svg" alt="">
+      <span class="logo-zju-word">ZJU</span>
     </a>
     <a class="logo-hku-lockup" href="https://www.hku.hk/" target="_blank" rel="noopener noreferrer">
       <img class="logo-hku" src="pics/logos/hku.png" alt="">
